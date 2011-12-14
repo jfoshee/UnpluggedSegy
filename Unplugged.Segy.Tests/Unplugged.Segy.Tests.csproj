@@ -55,6 +55,7 @@
     <Compile Include="SegyReaderTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Examples\lineE.sgy" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

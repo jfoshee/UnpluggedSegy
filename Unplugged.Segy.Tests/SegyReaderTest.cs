@@ -11,20 +11,56 @@ namespace Unplugged.Segy.Tests
     public class SegyReaderTest : TestBase<SegyReader>
     {
         [TestMethod]
-        public void TryTextHeader()
+        public void ShouldReadHeaderFromEbcdicEncoding()
         {
-            var path = @"C:\Users\jfoshee\Desktop\RMOTC Data\RMOTC Seismic data set\3D_Seismic\filt_mig.sgy";
-            using (var stream = File.OpenRead(path))
-            using (var reader = new BinaryReader(stream))
-            {
-                var header = reader.ReadBytes(3200);
-                Encoding ascii = Encoding.ASCII;
-                Encoding ebcdic = Encoding.GetEncoding("IBM037");
-                var headerAscii = Encoding.Convert(ebcdic, ascii, header);
-                var s = ascii.GetString(headerAscii);
-                Console.WriteLine(s);
-            }
+            // Arrange some Ebcdic characters at the beginning of the file
+            var unicode = Encoding.Unicode;
+            var ebcdic = Encoding.GetEncoding("IBM037");
+            var expected = "Once upon a time...";
+            var unicodeBytes = unicode.GetBytes(expected);
+            var ebcdicBytes = Encoding.Convert(unicode, ebcdic, unicodeBytes);
+            var path = TestPath();
+            File.WriteAllBytes(path, ebcdicBytes);
+
+            // Act
+            string header = Subject.ReadTextHeader(path);
+
+            // Assert
+            StringAssert.StartsWith(header, expected);
         }
+
+        [TestMethod]
+        public void ShouldRead3200BytesForTextHeader()
+        {
+            // Arrange some Ebcdic characters at the beginning of the file
+            var unicode = Encoding.Unicode;
+            var ebcdic = Encoding.GetEncoding("IBM037");
+            var expected = "TheEnd";
+            var unicodeBytes = unicode.GetBytes(new string('c', 3200 - 6) + expected + "notExpected");
+            var ebcdicBytes = Encoding.Convert(unicode, ebcdic, unicodeBytes);
+            var path = TestPath();
+            File.WriteAllBytes(path, ebcdicBytes);
+
+            // Act
+            string header = Subject.ReadTextHeader(path);
+
+            // Assert
+            StringAssert.EndsWith(header, expected);
+        }
+
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ShouldReadExampleTextHeader()
+        {
+            // Act
+            var header = Subject.ReadTextHeader("lineE.sgy");
+
+            // Assert
+            StringAssert.StartsWith(header, "C 1");
+            StringAssert.Contains(header, "CLIENT");
+            StringAssert.EndsWith(header.TrimEnd(), "END EBCDIC");
+        }
+
+        // Should insert newlines at 80 chars
 
         [TestMethod]
         public void TryTraceHeader()
