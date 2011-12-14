@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BinaryReaderExtensionMethods.cs" />
     <Compile Include="FileHeader.cs" />
     <Compile Include="FormatCode.cs" />
     <Compile Include="IFileHeader.cs" />

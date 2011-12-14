@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -16,15 +15,14 @@ namespace Unplugged.Segy
 
         private static string ReadTextHeader(BinaryReader reader)
         {
-            var bytes = reader.ReadBytes(40 * 80);
-            var text = ConvertFromEbcdic(bytes);
+            var text = reader.ReadStringEbcdic(40 * 80);
             return InsertNewLines(text);
         }
 
         public IFileHeader ReadBinaryHeader(BinaryReader reader)
         {
             reader.ReadBytes(24);
-            var sampleFormat = (FormatCode)ReadBigEndianInt16(reader);
+            var sampleFormat = (FormatCode)reader.ReadInt16BigEndian();
             reader.ReadBytes(400 - 24 - 2);
             return new FileHeader { SampleFormat = sampleFormat };
         }
@@ -40,21 +38,12 @@ namespace Unplugged.Segy
         public ITraceHeader ReadTraceHeader(BinaryReader reader)
         {
             reader.ReadBytes(114);
-            var sampleCount = ReadBigEndianInt16(reader);
+            var sampleCount = reader.ReadInt16BigEndian();
             reader.ReadBytes(240 - 114 - 2);
             return new TraceHeader { SampleCount = sampleCount };
         }
 
         #region Behind the Scenes
-
-        private static string ConvertFromEbcdic(byte[] header)
-        {
-            var unicode = Encoding.Unicode;
-            var ebcdic = Encoding.GetEncoding("IBM037");
-            var unicodeBytes = Encoding.Convert(ebcdic, unicode, header);
-            var unicodeText = unicode.GetString(unicodeBytes);
-            return unicodeText;
-        }
 
         private static string InsertNewLines(string text)
         {
@@ -65,12 +54,6 @@ namespace Unplugged.Segy
                 result.AppendLine(line);
             }
             return result.ToString();
-        }
-
-        private static short ReadBigEndianInt16(BinaryReader reader)
-        {
-            var bytes = reader.ReadBytes(2).Reverse().ToArray();
-            return BitConverter.ToInt16(bytes, 0);
         }
 
         #endregion
