@@ -79,6 +79,31 @@ namespace Unplugged.Segy.Tests
 
         #endregion
 
+        /// 400-byte Binary File Header follows 3200 byte textual header
+        /// Bytes 3225-3226: Data sample format code
+        #region Binary File Header
+
+        [TestMethod]
+        public void ShouldReadSampleFormatFromByte25()
+        {
+            // Arrange
+            var expected = FormatCode.IeeeFloatingPoint4;
+
+            // Act
+            IFileHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadBinaryHeader(br), 25, (int)expected);
+
+            // Assert
+            Assert.AreEqual(expected, result.SampleFormat);
+        }
+
+        [TestMethod]
+        public void ShouldConsume400Bytes()
+        {
+            AssertBytesConsumed((sr, br) => sr.ReadBinaryHeader(br), 400);
+        }
+
+        #endregion
+
         /// The Trace Header is typically 240 bytes with Big Endian values
         /// Info from the standard:
         /// 115-116 Number of samples in this trace
@@ -105,44 +130,19 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadNumberOfSamplesFromByte115()
         {
             // Arrange
-            int expected = 2345;
-            var samplesBytes = BitConverter.GetBytes(expected);
-            var bytes = new byte[116];
-            bytes[114] = samplesBytes[1];
-            bytes[115] = samplesBytes[0];
-            File.WriteAllBytes(TestPath(), bytes);
+            var expectedValue = 2345;
 
             // Act
-            using (var stream = File.OpenRead(TestPath()))
-            using (var reader = new BinaryReader(stream))
-            {
-                ITraceHeader traceHeader = Subject.ReadTraceHeader(reader);
+            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 115, expectedValue);
 
-                // Assert
-                Assert.AreEqual(expected, traceHeader.SampleCount);
-            }
+            // Assert
+            Assert.AreEqual(expectedValue, result.SampleCount);
         }
 
         [TestMethod]
         public void ShouldConsume240Bytes()
         {
-            // Arrange
-            byte expected = 12;
-            var bytes = new byte[241];
-            bytes[240] = expected;
-
-            File.WriteAllBytes(TestPath(), bytes);
-
-            // Act
-            using (var stream = File.OpenRead(TestPath()))
-            using (var reader = new BinaryReader(stream))
-            {
-                Subject.ReadTraceHeader(reader);
-
-                // Assert
-                var actual = reader.ReadByte();
-                Assert.AreEqual(expected, actual);
-            }
+            AssertBytesConsumed((sr, br) => sr.ReadTraceHeader(br), 240);
         }
 
         [TestMethod]
@@ -196,6 +196,47 @@ namespace Unplugged.Segy.Tests
         {
             var lines = header.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
             return lines;
+        }
+
+        private void AssertBytesConsumed(Action<SegyReader, BinaryReader> act, int expectedNumberOfBytes)
+        {
+            // Arrange
+            byte expected = 12;
+            var bytes = new byte[expectedNumberOfBytes + 1];
+            bytes[expectedNumberOfBytes] = expected;
+            File.WriteAllBytes(TestPath(), bytes);
+
+            // Act
+            using (var stream = File.OpenRead(TestPath()))
+            using (var reader = new BinaryReader(stream))
+            {
+                act(Subject, reader);
+
+                // Assert
+                var actual = reader.ReadByte();
+                if (expected != actual)
+                    Assert.Fail("Not enough bytes were consumed. Expected: {0}", expectedNumberOfBytes);
+            }
+        }
+
+        private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, int value)
+        {
+            // Arrange
+            var samplesBytes = BitConverter.GetBytes(value);
+            var bytes = new byte[byteNumber + 2];
+            bytes[byteNumber - 1] = samplesBytes[1];
+            bytes[byteNumber] = samplesBytes[0];
+            File.WriteAllBytes(TestPath(), bytes);
+
+            // Act
+            TResult result;
+            using (var stream = File.OpenRead(TestPath()))
+            using (var reader = new BinaryReader(stream))
+            {
+                result = act(Subject, reader);
+            }
+
+            return result;
         }
     }
 }

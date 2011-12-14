@@ -14,21 +14,23 @@ namespace Unplugged.Segy
             {
                 var bytes = reader.ReadBytes(40 * 80);
                 var text = ConvertFromEbcdic(bytes);
-                var result = new StringBuilder(text.Length + 40);
-                for (int i = 0; i < 1 + text.Length / 80; i++)
-                {
-                    var line = new string(text.Skip(80 * i).Take(80).ToArray());
-                    result.AppendLine(line);
-                }
-                return result.ToString();
+                return InsertNewlines(text);
             }
+        }
+
+        public IFileHeader ReadBinaryHeader(BinaryReader reader)
+        {
+            reader.ReadBytes(24);
+            var sampleFormat = (FormatCode)ReadBigEndianInt16(reader);
+            reader.ReadBytes(400 - 24 - 2);
+            return new FileHeader { SampleFormat = sampleFormat };
         }
 
         public ITraceHeader ReadTraceHeader(BinaryReader reader)
         {
             reader.ReadBytes(114);
             var sampleCount = ReadBigEndianInt16(reader);
-            reader.ReadBytes(240 - 116);
+            reader.ReadBytes(240 - 114 - 2);
             return new TraceHeader { SampleCount = sampleCount };
         }
 
@@ -41,16 +43,21 @@ namespace Unplugged.Segy
             return unicodeText;
         }
 
+        private static string InsertNewlines(string text)
+        {
+            var result = new StringBuilder(text.Length + 40);
+            for (int i = 0; i < 1 + text.Length / 80; i++)
+            {
+                var line = new string(text.Skip(80 * i).Take(80).ToArray());
+                result.AppendLine(line);
+            }
+            return result.ToString();
+        }
+
         private static short ReadBigEndianInt16(BinaryReader reader)
         {
             var bytes = reader.ReadBytes(2).Reverse().ToArray();
             return BitConverter.ToInt16(bytes, 0);
         }
     }
-
-    class TraceHeader : ITraceHeader
-    {
-        public int SampleCount { get; set; }
-    }
-
 }
