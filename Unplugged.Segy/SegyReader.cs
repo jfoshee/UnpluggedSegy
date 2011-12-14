@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -23,6 +24,14 @@ namespace Unplugged.Segy
             }
         }
 
+        public ITraceHeader ReadTraceHeader(BinaryReader reader)
+        {
+            reader.ReadBytes(114);
+            var sampleCount = ReadBigEndianInt16(reader);
+            reader.ReadBytes(240 - 116);
+            return new TraceHeader { SampleCount = sampleCount };
+        }
+
         private static string ConvertFromEbcdic(byte[] header)
         {
             var unicode = Encoding.Unicode;
@@ -31,5 +40,17 @@ namespace Unplugged.Segy
             var unicodeText = unicode.GetString(unicodeBytes);
             return unicodeText;
         }
+
+        private static short ReadBigEndianInt16(BinaryReader reader)
+        {
+            var bytes = reader.ReadBytes(2).Reverse().ToArray();
+            return BitConverter.ToInt16(bytes, 0);
+        }
     }
+
+    class TraceHeader : ITraceHeader
+    {
+        public int SampleCount { get; set; }
+    }
+
 }

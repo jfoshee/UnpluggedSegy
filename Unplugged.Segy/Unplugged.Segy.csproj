@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ITraceHeader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SegyReader.cs" />
   </ItemGroup>

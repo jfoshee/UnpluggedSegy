@@ -10,6 +10,9 @@ namespace Unplugged.Segy.Tests
     [TestClass]
     public class SegyReaderTest : TestBase<SegyReader>
     {
+        /// The text header is typically 3200 EBCDIC encoded character bytes.  That is, 80 columns by 40 lines (formerly punch cards).
+        #region Textual Header
+
         [TestMethod]
         public void ShouldReadHeaderFromEbcdicEncoding()
         {
@@ -74,6 +77,74 @@ namespace Unplugged.Segy.Tests
             Assert.AreEqual(line3, lines[2]);
         }
 
+        #endregion
+
+        /// The Trace Header is typically 240 bytes with Big Endian values
+        /// Info from the standard:
+        /// 115-116 Number of samples in this trace
+        /// 117-118 Sample Interval in Micro-Seconds
+        /// 181-194 X CDP
+        /// 185-188 Y CDP
+        /// 189-192 Inline number (for 3D)
+        /// 193-196 Cross-line number (for 3D)
+        /// 
+        /// Header Information from Teapot load sheet
+        /// Inline (line)     bytes:   17- 20 and 181-184
+        /// Crossline (trace) bytes:   13- 16 and 185-188
+        /// CDP X_COORD       bytes:   81- 84 and 189-193
+        /// CDP Y_COORD       bytes:   85- 88 and 193-196
+        #region Trace Header
+
+        [TestMethod]
+        public void SystemShouldBeLittleEndian()
+        {
+            Assert.IsTrue(BitConverter.IsLittleEndian, "These tests assume the system is little endian");
+        }
+
+        [TestMethod]
+        public void ShouldReadNumberOfSamplesFromByte115()
+        {
+            // Arrange
+            int expected = 2345;
+            var samplesBytes = BitConverter.GetBytes(expected);
+            var bytes = new byte[116];
+            bytes[114] = samplesBytes[1];
+            bytes[115] = samplesBytes[0];
+            File.WriteAllBytes(TestPath(), bytes);
+
+            // Act
+            using (var stream = File.OpenRead(TestPath()))
+            using (var reader = new BinaryReader(stream))
+            {
+                ITraceHeader traceHeader = Subject.ReadTraceHeader(reader);
+
+                // Assert
+                Assert.AreEqual(expected, traceHeader.SampleCount);
+            }
+        }
+
+        [TestMethod]
+        public void ShouldConsume240Bytes()
+        {
+            // Arrange
+            byte expected = 12;
+            var bytes = new byte[241];
+            bytes[240] = expected;
+
+            File.WriteAllBytes(TestPath(), bytes);
+
+            // Act
+            using (var stream = File.OpenRead(TestPath()))
+            using (var reader = new BinaryReader(stream))
+            {
+                Subject.ReadTraceHeader(reader);
+
+                // Assert
+                var actual = reader.ReadByte();
+                Assert.AreEqual(expected, actual);
+            }
+        }
+
         [TestMethod]
         public void TryTraceHeader()
         {
@@ -85,19 +156,32 @@ namespace Unplugged.Segy.Tests
                 reader.ReadBytes(400);
                 var header = reader.ReadBytes(240);
 
-                var inline = GetIntFromBytes(header, 17);
+                var numSamples = GetInt16FromBytes(header, 115);
+                Assert.AreEqual(1501, numSamples);
+                var sampleInterval = GetInt16FromBytes(header, 117);
+                Assert.AreEqual(2, sampleInterval / 1000);
+                var inline = GetInt32FromBytes(header, 17);
                 Assert.AreEqual(1, inline);
-                var crossline = GetIntFromBytes(header, 13);
+                var crossline = GetInt32FromBytes(header, 13);
                 Assert.AreEqual(1, crossline);
             }
         }
 
-        private static int GetIntFromBytes(byte[] header, int byteNumber)
+        private static int GetInt32FromBytes(byte[] header, int byteNumber)
         {
             var bytes = header.Skip(byteNumber - 1).Take(4).Reverse().ToArray();    // Reverse byte order big endian to little endian
             var inline = BitConverter.ToInt32(bytes, 0);
             return inline;
         }
+
+        private static int GetInt16FromBytes(byte[] header, int byteNumber)
+        {
+            var bytes = header.Skip(byteNumber - 1).Take(2).Reverse().ToArray();    // Reverse byte order big endian to little endian
+            var inline = BitConverter.ToInt16(bytes, 0);
+            return inline;
+        }
+
+        #endregion
 
         private static byte[] ConvertToEbcdic(string expected)
         {
