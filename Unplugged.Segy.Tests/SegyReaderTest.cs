@@ -14,11 +14,8 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadHeaderFromEbcdicEncoding()
         {
             // Arrange some Ebcdic characters at the beginning of the file
-            var unicode = Encoding.Unicode;
-            var ebcdic = Encoding.GetEncoding("IBM037");
             var expected = "Once upon a time...";
-            var unicodeBytes = unicode.GetBytes(expected);
-            var ebcdicBytes = Encoding.Convert(unicode, ebcdic, unicodeBytes);
+            var ebcdicBytes = ConvertToEbcdic(expected);
             var path = TestPath();
             File.WriteAllBytes(path, ebcdicBytes);
 
@@ -33,19 +30,15 @@ namespace Unplugged.Segy.Tests
         public void ShouldRead3200BytesForTextHeader()
         {
             // Arrange some Ebcdic characters at the beginning of the file
-            var unicode = Encoding.Unicode;
-            var ebcdic = Encoding.GetEncoding("IBM037");
             var expected = "TheEnd";
-            var unicodeBytes = unicode.GetBytes(new string('c', 3200 - 6) + expected + "notExpected");
-            var ebcdicBytes = Encoding.Convert(unicode, ebcdic, unicodeBytes);
-            var path = TestPath();
-            File.WriteAllBytes(path, ebcdicBytes);
+            var ebcdicBytes = ConvertToEbcdic(new string('c', 3200 - 6) + expected + "notExpected");
+            File.WriteAllBytes(TestPath(), ebcdicBytes);
 
             // Act
-            string header = Subject.ReadTextHeader(path);
+            var header = Subject.ReadTextHeader(TestPath());
 
             // Assert
-            StringAssert.EndsWith(header, expected);
+            StringAssert.EndsWith(header.TrimEnd(), expected);
         }
 
         [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
@@ -55,12 +48,31 @@ namespace Unplugged.Segy.Tests
             var header = Subject.ReadTextHeader("lineE.sgy");
 
             // Assert
+            Console.WriteLine(header);
             StringAssert.StartsWith(header, "C 1");
             StringAssert.Contains(header, "CLIENT");
             StringAssert.EndsWith(header.TrimEnd(), "END EBCDIC");
         }
 
-        // Should insert newlines at 80 chars
+        [TestMethod]
+        public void ShouldInsertNewlinesEvery80Characters()
+        {
+            // Arrange
+            var line1 = new string('a', 80);
+            var line2 = new string('b', 80);
+            var line3 = new string('c', 80);
+            var bytes = ConvertToEbcdic(line1 + line2 + line3);
+            File.WriteAllBytes(TestPath(), bytes);
+
+            // Act
+            var header = Subject.ReadTextHeader(TestPath());
+
+            // Assert
+            var lines = SplitLines(header);
+            Assert.AreEqual(line1, lines[0]);
+            Assert.AreEqual(line2, lines[1]);
+            Assert.AreEqual(line3, lines[2]);
+        }
 
         [TestMethod]
         public void TryTraceHeader()
@@ -85,6 +97,21 @@ namespace Unplugged.Segy.Tests
             var bytes = header.Skip(byteNumber - 1).Take(4).Reverse().ToArray();    // Reverse byte order big endian to little endian
             var inline = BitConverter.ToInt32(bytes, 0);
             return inline;
+        }
+
+        private static byte[] ConvertToEbcdic(string expected)
+        {
+            var unicode = Encoding.Unicode;
+            var ebcdic = Encoding.GetEncoding("IBM037");
+            var unicodeBytes = unicode.GetBytes(expected);
+            var ebcdicBytes = Encoding.Convert(unicode, ebcdic, unicodeBytes);
+            return ebcdicBytes;
+        }
+
+        private static string[] SplitLines(string header)
+        {
+            var lines = header.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            return lines;
         }
     }
 }
