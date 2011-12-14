@@ -11,11 +11,14 @@ namespace Unplugged.Segy
         {
             using (var stream = File.OpenRead(path))
             using (var reader = new BinaryReader(stream))
-            {
-                var bytes = reader.ReadBytes(40 * 80);
-                var text = ConvertFromEbcdic(bytes);
-                return InsertNewlines(text);
-            }
+                return ReadTextHeader(reader);
+        }
+
+        private static string ReadTextHeader(BinaryReader reader)
+        {
+            var bytes = reader.ReadBytes(40 * 80);
+            var text = ConvertFromEbcdic(bytes);
+            return InsertNewlines(text);
         }
 
         public IFileHeader ReadBinaryHeader(BinaryReader reader)
@@ -24,6 +27,14 @@ namespace Unplugged.Segy
             var sampleFormat = (FormatCode)ReadBigEndianInt16(reader);
             reader.ReadBytes(400 - 24 - 2);
             return new FileHeader { SampleFormat = sampleFormat };
+        }
+
+        public IFileHeader ReadFileHeader(BinaryReader reader)
+        {
+            var text = ReadTextHeader(reader);
+            FileHeader header = ReadBinaryHeader(reader) as FileHeader;
+            header.Text = text;
+            return header;
         }
 
         public ITraceHeader ReadTraceHeader(BinaryReader reader)

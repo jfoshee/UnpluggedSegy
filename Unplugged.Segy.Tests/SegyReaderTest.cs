@@ -102,6 +102,22 @@ namespace Unplugged.Segy.Tests
             AssertBytesConsumed((sr, br) => sr.ReadBinaryHeader(br), 400);
         }
 
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ShouldReadTextAndBinaryHeaderGivenBinaryReader()
+        {
+            // Arrange
+            using (var stream = File.OpenRead("lineE.sgy"))
+            using (var reader = new BinaryReader(stream))
+            {
+                // Act
+                IFileHeader fileHeader = Subject.ReadFileHeader(reader);
+
+                // Assert
+                Assert.AreEqual(Subject.ReadTextHeader("lineE.sgy"), fileHeader.Text);
+                Assert.AreEqual(FormatCode.IbmFloatingPoint4, fileHeader.SampleFormat);
+            }
+        }
+
         #endregion
 
         /// The Trace Header is typically 240 bytes with Big Endian values
