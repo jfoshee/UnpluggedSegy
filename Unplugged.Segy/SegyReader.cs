@@ -18,7 +18,7 @@ namespace Unplugged.Segy
         {
             var bytes = reader.ReadBytes(40 * 80);
             var text = ConvertFromEbcdic(bytes);
-            return InsertNewlines(text);
+            return InsertNewLines(text);
         }
 
         public IFileHeader ReadBinaryHeader(BinaryReader reader)
@@ -45,6 +45,8 @@ namespace Unplugged.Segy
             return new TraceHeader { SampleCount = sampleCount };
         }
 
+        #region Behind the Scenes
+
         private static string ConvertFromEbcdic(byte[] header)
         {
             var unicode = Encoding.Unicode;
@@ -54,7 +56,7 @@ namespace Unplugged.Segy
             return unicodeText;
         }
 
-        private static string InsertNewlines(string text)
+        private static string InsertNewLines(string text)
         {
             var result = new StringBuilder(text.Length + 40);
             for (int i = 0; i < 1 + text.Length / 80; i++)
@@ -70,5 +72,7 @@ namespace Unplugged.Segy
             var bytes = reader.ReadBytes(2).Reverse().ToArray();
             return BitConverter.ToInt16(bytes, 0);
         }
+
+        #endregion
     }
 }

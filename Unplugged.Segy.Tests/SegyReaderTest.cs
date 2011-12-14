@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestDrivenDesign;
@@ -161,43 +160,26 @@ namespace Unplugged.Segy.Tests
             AssertBytesConsumed((sr, br) => sr.ReadTraceHeader(br), 240);
         }
 
-        [TestMethod]
-        public void TryTraceHeader()
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ShouldReadTraceHeaderFromExample()
         {
-            var path = @"C:\Users\jfoshee\Desktop\RMOTC Data\RMOTC Seismic data set\3D_Seismic\filt_mig.sgy";
-            using (var stream = File.OpenRead(path))
+            // Arrange
+            using (var stream = File.OpenRead("lineE.sgy"))
             using (var reader = new BinaryReader(stream))
             {
-                reader.ReadBytes(3200);
-                reader.ReadBytes(400);
-                var header = reader.ReadBytes(240);
+                var header = Subject.ReadFileHeader(reader);
 
-                var numSamples = GetInt16FromBytes(header, 115);
-                Assert.AreEqual(1501, numSamples);
-                var sampleInterval = GetInt16FromBytes(header, 117);
-                Assert.AreEqual(2, sampleInterval / 1000);
-                var inline = GetInt32FromBytes(header, 17);
-                Assert.AreEqual(1, inline);
-                var crossline = GetInt32FromBytes(header, 13);
-                Assert.AreEqual(1, crossline);
+                // Act
+                var traceHeader = Subject.ReadTraceHeader(reader);
+
+                // Assert
+                Assert.AreEqual(1001, traceHeader.SampleCount);
             }
         }
 
-        private static int GetInt32FromBytes(byte[] header, int byteNumber)
-        {
-            var bytes = header.Skip(byteNumber - 1).Take(4).Reverse().ToArray();    // Reverse byte order big endian to little endian
-            var inline = BitConverter.ToInt32(bytes, 0);
-            return inline;
-        }
-
-        private static int GetInt16FromBytes(byte[] header, int byteNumber)
-        {
-            var bytes = header.Skip(byteNumber - 1).Take(2).Reverse().ToArray();    // Reverse byte order big endian to little endian
-            var inline = BitConverter.ToInt16(bytes, 0);
-            return inline;
-        }
-
         #endregion
+
+        #region Behind the scenes
 
         private static byte[] ConvertToEbcdic(string expected)
         {
@@ -210,28 +192,21 @@ namespace Unplugged.Segy.Tests
 
         private static string[] SplitLines(string header)
         {
-            var lines = header.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-            return lines;
+            return header.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
         }
 
         private void AssertBytesConsumed(Action<SegyReader, BinaryReader> act, int expectedNumberOfBytes)
         {
             // Arrange
-            byte expected = 12;
-            var bytes = new byte[expectedNumberOfBytes + 1];
-            bytes[expectedNumberOfBytes] = expected;
-            File.WriteAllBytes(TestPath(), bytes);
-
-            // Act
-            using (var stream = File.OpenRead(TestPath()))
+            var bytes = new byte[2 * expectedNumberOfBytes];
+            using (var stream = new MemoryStream(bytes))
             using (var reader = new BinaryReader(stream))
             {
+                // Act
                 act(Subject, reader);
 
                 // Assert
-                var actual = reader.ReadByte();
-                if (expected != actual)
-                    Assert.Fail("Not enough bytes were consumed. Expected: {0}", expectedNumberOfBytes);
+                Assert.AreEqual(expectedNumberOfBytes, stream.Position, "Wrong number of bytes were consumed.");
             }
         }
 
@@ -242,17 +217,13 @@ namespace Unplugged.Segy.Tests
             var bytes = new byte[byteNumber + 2];
             bytes[byteNumber - 1] = samplesBytes[1];
             bytes[byteNumber] = samplesBytes[0];
-            File.WriteAllBytes(TestPath(), bytes);
 
             // Act
-            TResult result;
-            using (var stream = File.OpenRead(TestPath()))
+            using (var stream = new MemoryStream(bytes))
             using (var reader = new BinaryReader(stream))
-            {
-                result = act(Subject, reader);
-            }
-
-            return result;
+                return act(Subject, reader);
         }
+
+        #endregion
     }
 }
