@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestDrivenDesign;
@@ -182,6 +184,45 @@ namespace Unplugged.Segy.Tests
                 }
                 Assert.AreEqual(1001, Subject.ReadTraceHeader(reader).SampleCount);
             }
+        }
+
+        #endregion
+
+        #region Trace Data
+
+        [TestMethod]
+        public void ShouldConsumeAllBytesInTrace()
+        {
+            // Arrange
+            FormatCode sampleFormat = FormatCode.IeeeFloatingPoint4;
+            int sampleCount = 200;
+            var expected = 800;
+            IList<float> result = null;
+
+            // Act
+            BinaryReaderExtensionMethodsTest.AssertBytesConsumed(r => result = Subject.ReadTrace(r, sampleFormat, sampleCount), expected);
+
+            // Assert
+            Assert.AreEqual(sampleCount, result.Count);
+        }
+
+        [TestMethod]
+        public void ShouldReadSinglesForIeeeFormat()
+        {
+            // Arrange
+            var sampleFormat = FormatCode.IeeeFloatingPoint4;
+            var expected = new float[] { 10, 20, 30 };
+            var sampleCount = expected.Length;
+            IList<float> result = null;
+            var bytes = BitConverter.GetBytes(10f).Concat(BitConverter.GetBytes(20f)).Concat(BitConverter.GetBytes(30f)).ToArray();
+
+            // Act
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new BinaryReader(stream))
+                result = Subject.ReadTrace(reader, sampleFormat, sampleCount);
+
+            // Assert
+            CollectionAssert.AreEqual(expected, result.ToList());
         }
 
         #endregion

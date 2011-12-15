@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Unplugged.Segy
 {
@@ -57,5 +58,15 @@ namespace Unplugged.Segy
         }
 
         #endregion
+
+        public IList<float> ReadTrace(BinaryReader reader, FormatCode sampleFormat, int sampleCount)
+        {
+            var trace = new float[sampleCount];
+            for (int i = 0; i < sampleCount; i++)
+            {
+                trace[i] = reader.ReadSingle();
+            }
+            return trace;
+        }
     }
 }
