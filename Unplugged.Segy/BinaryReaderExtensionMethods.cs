@@ -7,6 +7,15 @@ namespace Unplugged.Segy
 {
     public static class BinaryReaderExtensionMethods
     {
+        public static string ReadStringEbcdic(this BinaryReader reader, int length)
+        {
+            var bytes = reader.ReadBytes(length);
+            var unicode = Encoding.Unicode;
+            var ebcdic = Encoding.GetEncoding("IBM037");
+            var unicodeBytes = Encoding.Convert(ebcdic, unicode, bytes);
+            return unicode.GetString(unicodeBytes);
+        }
+
         public static short ReadInt16BigEndian(this BinaryReader reader)
         {
             var bytes = reader.ReadBytes(2).Reverse().ToArray();
@@ -26,7 +35,7 @@ namespace Unplugged.Segy
 
             // The first bit is the sign.  The next 7 bits are the exponent.
             int exponentBits = bytes[0];
-            var sign = 1.0;
+            var sign = +1.0;
             // Remove sign from first bit
             if (exponentBits >= 128)
             {
@@ -35,29 +44,18 @@ namespace Unplugged.Segy
             }
             // Remove the bias of 64 from the exponent
             exponentBits -= 64;
-            const int ibmBase = 16;
+            var ibmBase = 16;
             var exponent = Math.Pow(ibmBase, exponentBits);
 
             // The fractional part is Big Endian unsigned int to the right of the radix point
-            // So we reverse the bytes
-            int fraction3 = bytes[1];
-            int fraction2 = bytes[2];
-            int fraction1 = bytes[3];
-            // Add them back together shifting them to their proper place
-            var mantissa = (fraction3 << 16) + (fraction2 << 8) + fraction1;
+            // So we reverse the bytes and pack them back into an int
+            var fractionBytes = new byte[] { bytes[3], bytes[2], bytes[1], 0 };
+            var mantissa = BitConverter.ToInt32(fractionBytes, 0);
             // And divide by 2^(8 * 3) to move the decimal all the way to the left
-            var dividend = 16777216.0; // Math.Pow(2, 8 * 3);
-            var fraction = mantissa / dividend;
-            return (float)(sign * exponent * fraction);
-        }
+            var dividend = 16777216; // Math.Pow(2, 8 * 3);
+            var fraction = mantissa / (float)dividend;
 
-        public static string ReadStringEbcdic(this BinaryReader reader, int length)
-        {
-            var bytes = reader.ReadBytes(length);
-            var unicode = Encoding.Unicode;
-            var ebcdic = Encoding.GetEncoding("IBM037");
-            var unicodeBytes = Encoding.Convert(ebcdic, unicode, bytes);
-            return unicode.GetString(unicodeBytes);
+            return (float)(sign * exponent * fraction);
         }
     }
 }
