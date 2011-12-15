@@ -19,67 +19,50 @@ namespace Unplugged.Segy.Tests
         [TestMethod]
         public void ShouldConsume4Bytes()
         {
-            var expectedNumberOfBytes = 4;
-            Action<BinaryReader> act = (r) => r.ReadSingleIbm();
-            AssertBytesConsumed(act, expectedNumberOfBytes);
+            AssertBytesConsumed(r => r.ReadSingleIbm(), 4);
         }
 
-        //[TestMethod]
-        //public void One()
-        //{
-        //    var expected = 1f;
-        //    var bits = new BitArray(4 * 8);
-        //    bits[8] = true;
-        //    VerifyReadSingleIbm(expected, bits);
-        //}
-
-        //[TestMethod]
-        //public void NegativeOne()
-        //{
-        //    var expected = -1f;
-        //    var bits = new BitArray(4 * 8);
-        //    bits[0] = true;
-        //    bits[8] = true;
-        //    VerifyReadSingleIbm(expected, bits);
-        //}
-
-        //[TestMethod]
-        //public void Wikipedia()
-        //{
-        //    // Arrange
-        //    var expected = -118.625f;
-        //    // 1100-0010 0111-0110 1010-0000 0000-0000
-        //    var bools = new bool[] { true, true, false, false, false, false, true, false, false, true, true, true, false, true, true, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, };
-        //    var bits = new BitArray(bools);
-        //    VerifyReadSingleIbm(expected, bits);
-        //}
-
-        //private static byte[] ReverseBits(BitArray bits)
-        //{
-        //    var newBits = new BitArray(32);
-        //    for (int i = 0; i < 32; i++)
-        //    {
-        //        newBits[31 - i] = bits[i];
-
-        //    }
-        //    var newBytes = new byte[4];
-        //    newBits.CopyTo(newBytes, 0);
-        //    return newBytes;
-        //}
-
-        //private static void WriteBits(BitArray bits)
-        //{
-        //    int counter = 0;
-        //    foreach (bool bit in bits)
-        //    {
-        //        Console.Write(bit ? "1" : "0");
-        //        ++counter;
-        //        if (counter % 8 == 0) Console.Write(" ");
-        //    }
-        //}
+        [TestMethod]
+        public void One()
+        {
+            var expected = 1f;
+            var bytes = new byte[4];
+            bytes[0] = 64 + 1; // 16^1 with bias of 64
+            bytes[1] = 16;     // 16 to the right of the decimal 
+            VerifyReadSingleIbm(expected, bytes);
+        }
 
         [TestMethod]
-        public void FromSegy()
+        public void NegativeOne()
+        {
+            var expected = -1f;
+            var bytes = new byte[4];
+            bytes[0] = 128 + 64 + 1; // +128 for negative sign in first bit
+            bytes[1] = 16;           // 16 to the right of the decimal 
+            VerifyReadSingleIbm(expected, bytes);
+        }
+
+        [TestMethod]
+        public void Wikipedia()
+        {
+            // This test comes from the example described here: http://en.wikipedia.org/wiki/IBM_Floating_Point_Architecture#An_Example
+            // The difference is the bits have to be reversed per byte because the highest order bit is on the right
+            // Arrange
+            var expected = -118.625f;
+            // 0100 0011 0110 1110 0000 0101 0000 0000
+            var bools = new bool[] 
+            {
+                false, true, false, false,  false, false, true, true,  
+                false, true, true, false,  true, true, true, false,  
+                false, false, false, false,  false, true, false, true,  
+                false, false, false, false,  false, false, false, false, 
+            };
+            var bits = new BitArray(bools);
+            VerifyReadSingleIbm(expected, bits);
+        }
+
+        [TestMethod]
+        public void SampleValueFromSegy()
         {
             // Arrange
             var bytes = new byte[] { 0xc0, 0x1f, 0xf4, 0x62 };

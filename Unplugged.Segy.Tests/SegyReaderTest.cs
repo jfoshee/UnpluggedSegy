@@ -178,6 +178,7 @@ namespace Unplugged.Segy.Tests
                 {
                     var value = reader.ReadSingleIbm();
                     Console.WriteLine(value);
+                    Assert.IsTrue(value < 10 && value > -10);
                 }
                 Assert.AreEqual(1001, Subject.ReadTraceHeader(reader).SampleCount);
             }
