@@ -98,7 +98,7 @@ namespace Unplugged.Segy.Tests
         [TestMethod]
         public void ShouldConsume400Bytes()
         {
-            AssertBytesConsumed((sr, br) => sr.ReadBinaryHeader(br), 400);
+            BinaryReaderExtensionMethodsTest.AssertBytesConsumed((r) => Subject.ReadBinaryHeader(r), 400);
         }
 
         [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
@@ -157,7 +157,7 @@ namespace Unplugged.Segy.Tests
         [TestMethod]
         public void ShouldConsume240Bytes()
         {
-            AssertBytesConsumed((sr, br) => sr.ReadTraceHeader(br), 240);
+            BinaryReaderExtensionMethodsTest.AssertBytesConsumed(r => Subject.ReadTraceHeader(r), 240);
         }
 
         [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
@@ -174,6 +174,12 @@ namespace Unplugged.Segy.Tests
 
                 // Assert
                 Assert.AreEqual(1001, traceHeader.SampleCount);
+                for (int i = 0; i < traceHeader.SampleCount; i++)
+                {
+                    var value = reader.ReadSingleIbm();
+                    Console.WriteLine(value);
+                }
+                Assert.AreEqual(1001, Subject.ReadTraceHeader(reader).SampleCount);
             }
         }
 
@@ -193,21 +199,6 @@ namespace Unplugged.Segy.Tests
         private static string[] SplitLines(string header)
         {
             return header.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-        }
-
-        private void AssertBytesConsumed(Action<SegyReader, BinaryReader> act, int expectedNumberOfBytes)
-        {
-            // Arrange
-            var bytes = new byte[2 * expectedNumberOfBytes];
-            using (var stream = new MemoryStream(bytes))
-            using (var reader = new BinaryReader(stream))
-            {
-                // Act
-                act(Subject, reader);
-
-                // Assert
-                Assert.AreEqual(expectedNumberOfBytes, stream.Position, "Wrong number of bytes were consumed.");
-            }
         }
 
         private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, int value)
