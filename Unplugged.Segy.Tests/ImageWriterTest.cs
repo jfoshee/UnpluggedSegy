@@ -80,6 +80,25 @@ namespace Unplugged.Segy.Tests
             TestContext.AddResultFile(path);
         }
 
+        [TestMethod]
+        public void NullSamplesShouldBeTransparent()
+        {
+            // Arrange: A sample value of exactly 0
+            var traceValues = new float[] { 0.00001f, 0, -0.00001f };
+            var trace = new MockTrace { Values = traceValues };
+            var segy = new MockSegyFile { Traces = new ITrace[] { trace } };
+            var path = TestPath() + ".png";
+
+            // Act
+            Subject.Write(segy, path);
+
+            // Assert
+            Bitmap image = new Bitmap(path);
+            Assert.AreEqual(255, image.GetPixel(0, 0).A);
+            Assert.AreEqual(0, image.GetPixel(0, 1).A);
+            Assert.AreEqual(255, image.GetPixel(0, 2).A);
+        }
+
         // TODO: Handle variable length traces
     }
 

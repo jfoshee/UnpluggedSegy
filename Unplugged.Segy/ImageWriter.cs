@@ -27,8 +27,12 @@ namespace Unplugged.Segy
             for (int i = 0; i < width; i++)
                 for (int j = 0; j < height; j++)
                 {
-                    int byteValue = (int)(255 * (traces[i].Values[j] - valueMin) / valueRange);
-                    var color = Color.FromArgb(255, byteValue, byteValue, byteValue);
+                    var value = traces[i].Values[j];
+                    var alpha = 255;
+                    if (value == 0.0f) // Exactly zero is assumed to be a null sample
+                        alpha = 0;
+                    int byteValue = (int)(255 * (value - valueMin) / valueRange);
+                    var color = Color.FromArgb(alpha, byteValue, byteValue, byteValue);
                     bitmap.SetPixel(i, j, color);
                 }
         }
