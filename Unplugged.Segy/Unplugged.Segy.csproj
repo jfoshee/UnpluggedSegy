@@ -33,6 +33,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,6 +45,7 @@
     <Compile Include="FileHeader.cs" />
     <Compile Include="FormatCode.cs" />
     <Compile Include="IFileHeader.cs" />
+    <Compile Include="ImageWriter.cs" />
     <Compile Include="ISegyFile.cs" />
     <Compile Include="ITrace.cs" />
     <Compile Include="ITraceHeader.cs" />
