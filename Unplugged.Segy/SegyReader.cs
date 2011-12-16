@@ -8,6 +8,22 @@ namespace Unplugged.Segy
 {
     public class SegyReader
     {
+        public ISegyFile Read(string path)
+        {
+            using (var stream = File.OpenRead(path))
+            using (var reader = new BinaryReader(stream))
+            {
+                var fileHeader = ReadFileHeader(reader);
+                var traces = new List<ITrace>();
+                while (stream.Position != stream.Length)
+                {
+                    var trace = ReadTrace(reader, fileHeader.SampleFormat);
+                    traces.Add(trace);
+                }
+                return new SegyFile { Header = fileHeader, Traces = traces };
+            }
+        }
+
         public string ReadTextHeader(string path)
         {
             using (var stream = File.OpenRead(path))
@@ -45,21 +61,6 @@ namespace Unplugged.Segy
             return new TraceHeader { SampleCount = sampleCount };
         }
 
-        #region Behind the Scenes
-
-        private static string InsertNewLines(string text)
-        {
-            var result = new StringBuilder(text.Length + 40);
-            for (int i = 0; i < 1 + text.Length / 80; i++)
-            {
-                var line = new string(text.Skip(80 * i).Take(80).ToArray());
-                result.AppendLine(line);
-            }
-            return result.ToString();
-        }
-
-        #endregion
-
         public IList<float> ReadTrace(BinaryReader reader, FormatCode sampleFormat, int sampleCount)
         {
             var trace = new float[sampleCount];
@@ -86,5 +87,20 @@ namespace Unplugged.Segy
             var values = ReadTrace(reader, sampleFormat, header.SampleCount);
             return new Trace { Header = header, Values = values };
         }
+
+        #region Behind the Scenes
+
+        private static string InsertNewLines(string text)
+        {
+            var result = new StringBuilder(text.Length + 40);
+            for (int i = 0; i < 1 + text.Length / 80; i++)
+            {
+                var line = new string(text.Skip(80 * i).Take(80).ToArray());
+                result.AppendLine(line);
+            }
+            return result.ToString();
+        }
+
+        #endregion
     }
 }

@@ -269,6 +269,32 @@ namespace Unplugged.Segy.Tests
 
         #endregion
 
+        #region Reading Entire File
+
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ShouldReadFileHeadersAndAllTraces()
+        {
+            // Arrange
+            var path = "lineE.sgy";
+
+            // Act
+            ISegyFile result = Subject.Read(path);
+
+            // Assert
+            StringAssert.Contains(result.Header.Text, "C16 GEOPHONES");
+            Assert.AreEqual(FormatCode.IbmFloatingPoint4, result.Header.SampleFormat);
+            Assert.AreEqual(1001, result.Traces.First().Header.SampleCount);
+            var traceValues = result.Traces.First().Values.ToList();
+            Assert.AreEqual(1001, traceValues.Count);
+            CollectionAssert.Contains(traceValues, 0f);
+            CollectionAssert.Contains(traceValues, 0.9834598f);
+            CollectionAssert.DoesNotContain(traceValues, float.PositiveInfinity);
+            var fileLength = new FileInfo(path).Length;
+            Assert.AreEqual((fileLength - 3200 - 400) / (240 + 1001 * 4), result.Traces.Count);
+        }
+
+        #endregion
+
         #region Behind the scenes
 
         private static byte[] ConvertToEbcdic(string expected)
