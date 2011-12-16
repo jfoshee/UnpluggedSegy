@@ -1,7 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Collections.Generic;
 
 namespace Unplugged.Segy
 {
@@ -64,9 +65,26 @@ namespace Unplugged.Segy
             var trace = new float[sampleCount];
             for (int i = 0; i < sampleCount; i++)
             {
-                trace[i] = reader.ReadSingle();
+                switch (sampleFormat)
+                {
+                    case FormatCode.IbmFloatingPoint4:
+                        trace[i] = reader.ReadSingleIbm();
+                        break;
+                    case FormatCode.IeeeFloatingPoint4:
+                        trace[i] = reader.ReadSingle();
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
             }
             return trace;
+        }
+
+        public ITrace ReadTrace(BinaryReader reader, FormatCode sampleFormat)
+        {
+            var header = ReadTraceHeader(reader);
+            var values = ReadTrace(reader, sampleFormat, header.SampleCount);
+            return new Trace { Header = header, Values = values };
         }
     }
 }

@@ -91,7 +91,7 @@ namespace Unplugged.Segy.Tests
             var expected = FormatCode.IeeeFloatingPoint4;
 
             // Act
-            IFileHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadBinaryHeader(br), 25, (int)expected);
+            IFileHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadBinaryHeader(br), 25, (Int16)expected);
 
             // Assert
             Assert.AreEqual(expected, result.SampleFormat);
@@ -147,7 +147,7 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadNumberOfSamplesFromByte115()
         {
             // Arrange
-            var expectedValue = 2345;
+            Int16 expectedValue = 2345;
 
             // Act
             ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 115, expectedValue);
@@ -225,6 +225,48 @@ namespace Unplugged.Segy.Tests
             CollectionAssert.AreEqual(expected, result.ToList());
         }
 
+        [TestMethod]
+        public void ShouldReadSingleIbmForIbmFormat()
+        {
+            // Arrange
+            var sampleFormat = FormatCode.IbmFloatingPoint4;
+            var given = new int[] { 96795456, 2136281153, 1025579328 }; // TODO: This test would be clearer if I had code to convert TO IBM Float
+            var expected = new float[] { 0.9834598f, 1.020873f, 0.09816343f };
+            var sampleCount = given.Length;
+            IList<float> result = null;
+            var bytes = BitConverter.GetBytes(given[0]).Concat(BitConverter.GetBytes(given[1])).Concat(BitConverter.GetBytes(given[2])).ToArray();
+
+            // Act
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new BinaryReader(stream))
+                result = Subject.ReadTrace(reader, sampleFormat, sampleCount);
+
+            // Assert
+            for (int i = 0; i < sampleCount; i++)
+                Assert.AreEqual(expected[i], result[i], 0.00001);
+        }
+
+        [TestMethod]
+        public void ShouldReadTraceHeaderAndValuesGivenSampleFormat()
+        {
+            // Arrange
+            var sampleFormat = FormatCode.IeeeFloatingPoint4;
+            var expected = new float[] { 11, 111 };
+            var bytes = new byte[240]; // trace header
+            SetBigIndianValue((Int16)expected.Length, bytes, 115);
+            bytes = bytes.Concat(BitConverter.GetBytes(expected[0])).Concat(BitConverter.GetBytes(expected[1])).ToArray();
+            ITrace trace = null;
+
+            // Act
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new BinaryReader(stream))
+                trace = Subject.ReadTrace(reader, sampleFormat);
+
+            // Assert
+            Assert.AreEqual(expected.Length, trace.Header.SampleCount);
+            CollectionAssert.AreEqual(expected, trace.Values.ToList());
+        }
+
         #endregion
 
         #region Behind the scenes
@@ -243,18 +285,23 @@ namespace Unplugged.Segy.Tests
             return header.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
         }
 
-        private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, int value)
+        private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int16 value)
         {
             // Arrange
-            var samplesBytes = BitConverter.GetBytes(value);
             var bytes = new byte[byteNumber + 2];
-            bytes[byteNumber - 1] = samplesBytes[1];
-            bytes[byteNumber] = samplesBytes[0];
+            SetBigIndianValue(value, bytes, byteNumber);
 
             // Act
             using (var stream = new MemoryStream(bytes))
             using (var reader = new BinaryReader(stream))
                 return act(Subject, reader);
+        }
+
+        private static void SetBigIndianValue(Int16 value, byte[] bytes, int byteNumber)
+        {
+            var samplesBytes = BitConverter.GetBytes(value);
+            bytes[byteNumber - 1] = samplesBytes[1];
+            bytes[byteNumber] = samplesBytes[0];
         }
 
         #endregion
