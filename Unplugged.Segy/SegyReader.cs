@@ -8,7 +8,7 @@ namespace Unplugged.Segy
 {
     public class SegyReader
     {
-        public ISegyFile Read(string path)
+        public virtual ISegyFile Read(string path)
         {
             using (var stream = File.OpenRead(path))
             using (var reader = new BinaryReader(stream))
@@ -24,14 +24,14 @@ namespace Unplugged.Segy
             }
         }
 
-        public string ReadTextHeader(string path)
+        public virtual string ReadTextHeader(string path)
         {
             using (var stream = File.OpenRead(path))
             using (var reader = new BinaryReader(stream))
                 return ReadTextHeader(reader);
         }
 
-        private static string ReadTextHeader(BinaryReader reader)
+        public static string ReadTextHeader(BinaryReader reader)
         {
             var text = reader.ReadStringEbcdic(40 * 80);
             return InsertNewLines(text);
@@ -61,6 +61,13 @@ namespace Unplugged.Segy
             return new TraceHeader { SampleCount = sampleCount };
         }
 
+        public ITrace ReadTrace(BinaryReader reader, FormatCode sampleFormat)
+        {
+            var header = ReadTraceHeader(reader);
+            var values = ReadTrace(reader, sampleFormat, header.SampleCount);
+            return new Trace { Header = header, Values = values };
+        }
+
         public IList<float> ReadTrace(BinaryReader reader, FormatCode sampleFormat, int sampleCount)
         {
             var trace = new float[sampleCount];
@@ -79,13 +86,6 @@ namespace Unplugged.Segy
                 }
             }
             return trace;
-        }
-
-        public ITrace ReadTrace(BinaryReader reader, FormatCode sampleFormat)
-        {
-            var header = ReadTraceHeader(reader);
-            var values = ReadTrace(reader, sampleFormat, header.SampleCount);
-            return new Trace { Header = header, Values = values };
         }
 
         #region Behind the Scenes

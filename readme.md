@@ -1,6 +1,6 @@
-# .NET SEG-Y Reading Library
+# SEG-Y Reading Library in C#
 
-SEG-Y is a file format for seismic data.  It is also known as SEGY or SGY.
+SEG-Y is a file format for seismic image data.  It is also known as SEGY or SGY.
 
 ### Acknowledgements
 

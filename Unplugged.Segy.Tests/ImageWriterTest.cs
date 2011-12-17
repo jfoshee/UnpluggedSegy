@@ -66,20 +66,6 @@ namespace Unplugged.Segy.Tests
             Assert.AreEqual(Color.FromArgb(255, 255, 255), image.GetPixel(0, 3));
         }
 
-        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
-        public void ImageFromExample()
-        {
-            // Arrange
-            var segy = new SegyReader().Read("lineE.sgy");
-            var path = TestPath() + ".png";
-
-            // Act
-            Subject.Write(segy, path);
-
-            // Assert
-            TestContext.AddResultFile(path);
-        }
-
         [TestMethod]
         public void NullSamplesShouldBeTransparent()
         {
@@ -99,6 +85,21 @@ namespace Unplugged.Segy.Tests
             Assert.AreEqual(255, image.GetPixel(0, 2).A);
         }
 
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ImageFromExample()
+        {
+            // Arrange
+            var segy = new SegyReader().Read("lineE.sgy");
+            var path = TestPath() + ".png";
+
+            // Act
+            Subject.Write(segy, path);
+
+            // Assert
+            TestContext.AddResultFile(path);
+        }
+
+        // TODO: Handle 3D surveys
         // TODO: Handle variable length traces
     }
 

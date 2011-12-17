@@ -5,7 +5,7 @@ namespace Unplugged.Segy
 {
     public class ImageWriter
     {
-        public void Write(ISegyFile segyFile, string path)
+        public virtual void Write(ISegyFile segyFile, string path)
         {
             if (segyFile.Traces == null)
             {
@@ -22,16 +22,18 @@ namespace Unplugged.Segy
             bitmap.Save(path);
         }
 
+        #region Behind the Scenes
+
         private static void AssignPixelColors(IList<ITrace> traces, int width, int height, Bitmap bitmap, float valueMin, float valueRange)
         {
             for (int i = 0; i < width; i++)
                 for (int j = 0; j < height; j++)
                 {
                     var value = traces[i].Values[j];
-                    var alpha = 255;
+                    var alpha = byte.MaxValue;
                     if (value == 0.0f) // Exactly zero is assumed to be a null sample
-                        alpha = 0;
-                    int byteValue = (int)(255 * (value - valueMin) / valueRange);
+                        alpha = byte.MinValue;
+                    int byteValue = (int)(byte.MaxValue * (value - valueMin) / valueRange);
                     var color = Color.FromArgb(alpha, byteValue, byteValue, byteValue);
                     bitmap.SetPixel(i, j, color);
                 }
@@ -49,5 +51,7 @@ namespace Unplugged.Segy
                 }
             return new { Min = min, Max = max };
         }
+
+        #endregion
     }
 }
