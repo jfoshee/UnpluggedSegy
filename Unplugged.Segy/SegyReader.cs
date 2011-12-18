@@ -56,12 +56,12 @@ namespace Unplugged.Segy
         public ITraceHeader ReadTraceHeader(BinaryReader reader)
         {
             reader.ReadBytes(13 - 1);
-            var traceNumber = reader.ReadInt16BigEndian();
-            reader.ReadBytes(17 - 13 - 2);
+            var traceNumber = reader.ReadInt32BigEndian();
+            reader.ReadBytes(17 - 13 - 4);
             int inlineNumber = 0;
             if (reader.BaseStream.Position != reader.BaseStream.Length)
-                inlineNumber = reader.ReadInt16BigEndian();
-            reader.ReadBytes(115 - 17 - 2);
+                inlineNumber = reader.ReadInt32BigEndian();
+            reader.ReadBytes(115 - 17 - 4);
             int sampleCount = 0;
             if (reader.BaseStream.Position != reader.BaseStream.Length)
                 sampleCount = reader.ReadInt16BigEndian();

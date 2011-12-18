@@ -16,10 +16,16 @@ namespace Unplugged.Segy
             return unicode.GetString(unicodeBytes);
         }
 
-        public static short ReadInt16BigEndian(this BinaryReader reader)
+        public static Int16 ReadInt16BigEndian(this BinaryReader reader)
         {
             var bytes = reader.ReadBytes(2).Reverse().ToArray();
             return BitConverter.ToInt16(bytes, 0);
+        }
+
+        public static Int32 ReadInt32BigEndian(this BinaryReader reader)
+        {
+            var bytes = reader.ReadBytes(4).Reverse().ToArray();
+            return BitConverter.ToInt32(bytes, 0);
         }
 
         public static float ReadSingleIbm(this BinaryReader reader)

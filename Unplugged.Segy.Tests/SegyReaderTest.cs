@@ -147,7 +147,7 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadTraceNumberFromByte13()
         {
             // Arrange
-            Int16 expectedValue = 23;
+            Int32 expectedValue = Int16.MaxValue + 100;
 
             // Act
             ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 13, expectedValue);
@@ -161,7 +161,7 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadInlineNumberFromByte17()
         {
             // Arrange
-            Int16 expectedValue = 23;
+            Int32 expectedValue = Int16.MaxValue + 100;
 
             // Act
             ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 17, expectedValue);
@@ -341,7 +341,19 @@ namespace Unplugged.Segy.Tests
         private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int16 value)
         {
             // Arrange
-            var bytes = new byte[byteNumber + 2];
+            var bytes = new byte[byteNumber + 1];
+            SetBigIndianValue(value, bytes, byteNumber);
+
+            // Act
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new BinaryReader(stream))
+                return act(Subject, reader);
+        }
+
+        private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int32 value)
+        {
+            // Arrange
+            var bytes = new byte[byteNumber + 3];
             SetBigIndianValue(value, bytes, byteNumber);
 
             // Act
@@ -355,6 +367,15 @@ namespace Unplugged.Segy.Tests
             var samplesBytes = BitConverter.GetBytes(value);
             bytes[byteNumber - 1] = samplesBytes[1];
             bytes[byteNumber] = samplesBytes[0];
+        }
+
+        private static void SetBigIndianValue(Int32 value, byte[] bytes, int byteNumber)
+        {
+            var samplesBytes = BitConverter.GetBytes(value);
+            bytes[byteNumber - 1] = samplesBytes[3];
+            bytes[byteNumber + 0] = samplesBytes[2];
+            bytes[byteNumber + 1] = samplesBytes[1];
+            bytes[byteNumber + 2] = samplesBytes[0];
         }
 
         #endregion

@@ -85,6 +85,29 @@ namespace Unplugged.Segy.Tests
             Assert.AreEqual(255, image.GetPixel(0, 2).A);
         }
 
+        [TestMethod]
+        public void ShouldCreateImageForEachInline()
+        {
+            // Arrange
+            var values = new float[] { 1, 2, 3 };
+            var trace12a = new MockTrace { Header = new MockTraceHeader { InlineNumber = 12, CrosslineNumber = 1 }, Values = values };
+            var trace12b = new MockTrace { Header = new MockTraceHeader { InlineNumber = 12, CrosslineNumber = 2 }, Values = values };
+            var trace14 = new MockTrace { Header = new MockTraceHeader { InlineNumber = 14 }, Values = values };
+            var segy = new MockSegyFile { Traces = new ITrace[] { trace12a, trace12b, trace14 } };
+            var path = TestPath() + ".png";
+
+            // Act
+            Subject.Write(segy, path);
+
+            // Assert
+            var image12 = new Bitmap(TestPath() + " (12).png");
+            Assert.AreEqual(3, image12.Height);
+            Assert.AreEqual(2, image12.Width);
+            var image14 = new Bitmap(TestPath() + " (14).png");
+            Assert.AreEqual(3, image14.Height);
+            Assert.AreEqual(1, image14.Width);
+        }
+
         [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
         public void ImageFromExample()
         {
@@ -99,8 +122,30 @@ namespace Unplugged.Segy.Tests
             TestContext.AddResultFile(path);
         }
 
-        // TODO: Handle 3D surveys
+        //[TestMethod]
+        //public void ImageFromExample3D()
+        //{
+        //    // Arrange
+        //    var segy = new SegyReader().Read(@"%userprofile%\Desktop\RMOTC Data\RMOTC Seismic data set\3D_Seismic\filt_mig.sgy");
+        //    var path = TestPath() + ".png";
+
+        //    // Act
+        //    Subject.Write(segy, path);
+
+        //    // Assert
+        //    TestContext.AddResultFile(path);
+        //}
+
+        // TODO: Should verify trace range normalized over whole volume
         // TODO: Handle variable length traces
+    }
+
+    class MockTraceHeader : ITraceHeader
+    {
+        public int SampleCount { get; set; }
+        public int TraceNumber { get; set; }
+        public int InlineNumber { get; set; }
+        public int CrosslineNumber { get; set; }
     }
 
     class MockTrace : ITrace
