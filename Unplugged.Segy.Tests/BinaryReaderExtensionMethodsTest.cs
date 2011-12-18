@@ -74,6 +74,8 @@ namespace Unplugged.Segy.Tests
             Assert.AreEqual(-0.1248, ibm, 0.0001);
         }
 
+        // TODO: System.IO.EndOfStreamException: Unable to read beyond the end of the stream.
+
         private static void VerifyReadSingleIbm(float expected, BitArray bits)
         {
             var bytes = new byte[4];

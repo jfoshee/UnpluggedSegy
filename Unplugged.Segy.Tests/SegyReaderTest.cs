@@ -144,6 +144,33 @@ namespace Unplugged.Segy.Tests
         }
 
         [TestMethod]
+        public void ShouldReadTraceNumberFromByte13()
+        {
+            // Arrange
+            Int16 expectedValue = 23;
+
+            // Act
+            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 13, expectedValue);
+
+            // Assert
+            Assert.AreEqual(expectedValue, result.TraceNumber);
+            Assert.AreEqual(expectedValue, result.CrosslineNumber);
+        }
+
+        [TestMethod]
+        public void ShouldReadInlineNumberFromByte17()
+        {
+            // Arrange
+            Int16 expectedValue = 23;
+
+            // Act
+            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 17, expectedValue);
+
+            // Assert
+            Assert.AreEqual(expectedValue, result.InlineNumber);
+        }
+
+        [TestMethod]
         public void ShouldReadNumberOfSamplesFromByte115()
         {
             // Arrange
