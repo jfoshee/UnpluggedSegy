@@ -257,5 +257,7 @@ namespace Unplugged.IbmBits.Tests
         }
 
         #endregion
+
+        // TODO: Support for running on Big Endian architecture
     }
 }
