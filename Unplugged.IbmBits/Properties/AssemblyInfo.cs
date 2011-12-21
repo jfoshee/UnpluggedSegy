@@ -1,12 +1,11 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Unplugged.IbmBits")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Helps read and convert from legacy IBM System formats to .NET types. Includes converters and BinaryReader extensions for EBCDIC string, Big Endian Int16, Big Endian Int32 and IBM System/360 single precision floating point format.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Unplugged Development")]
 [assembly: AssemblyProduct("Unplugged.IbmBits")]
