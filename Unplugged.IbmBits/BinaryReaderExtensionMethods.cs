@@ -1,19 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 
-namespace Unplugged.Segy
+namespace Unplugged.IbmBits
 {
     public static class BinaryReaderExtensionMethods
     {
         public static string ReadStringEbcdic(this BinaryReader reader, int length)
         {
             var bytes = reader.ReadBytes(length);
-            var unicode = Encoding.Unicode;
-            var ebcdic = Encoding.GetEncoding("IBM037");
-            var unicodeBytes = Encoding.Convert(ebcdic, unicode, bytes);
-            return unicode.GetString(unicodeBytes);
+            return IbmConverter.ToString(bytes);
         }
 
         public static Int16 ReadInt16BigEndian(this BinaryReader reader)

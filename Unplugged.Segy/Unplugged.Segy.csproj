@@ -41,7 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BinaryReaderExtensionMethods.cs" />
     <Compile Include="FileHeader.cs" />
     <Compile Include="FormatCode.cs" />
     <Compile Include="IFileHeader.cs" />
@@ -54,6 +53,12 @@
     <Compile Include="SegyReader.cs" />
     <Compile Include="Trace.cs" />
     <Compile Include="TraceHeader.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Unplugged.IbmBits\Unplugged.IbmBits.csproj">
+      <Project>{A888F8BC-C046-4A45-8001-10C8C9FAB3AE}</Project>
+      <Name>Unplugged.IbmBits</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

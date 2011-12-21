@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestDrivenDesign;
+using Unplugged.IbmBits;
+using Unplugged.IbmBits.Tests;
 
 namespace Unplugged.Segy.Tests
 {

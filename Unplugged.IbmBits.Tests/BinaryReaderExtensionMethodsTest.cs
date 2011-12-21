@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Unplugged.Segy.Tests
+namespace Unplugged.IbmBits.Tests
 {
     [TestClass]
     public class BinaryReaderExtensionMethodsTest
@@ -96,7 +96,7 @@ namespace Unplugged.Segy.Tests
             }
         }
 
-        internal static void AssertBytesConsumed(Action<BinaryReader> act, int expectedNumberOfBytes)
+        public static void AssertBytesConsumed(Action<BinaryReader> act, int expectedNumberOfBytes)
         {
             var bytes = new byte[2 * expectedNumberOfBytes];
             using (var stream = new MemoryStream(bytes))
