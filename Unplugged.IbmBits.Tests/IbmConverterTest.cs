@@ -38,5 +38,63 @@ namespace Unplugged.IbmBits.Tests
             // Assert
             Assert.AreEqual("lol!", result);
         }
+
+        [TestMethod]
+        public void ShouldConvertToStringGivenStartingIndex()
+        {
+            // Arrange
+            var bytes = new byte[] { _bang, _bang, _H, _e };
+            var startingIndex = 2;
+
+            // Act
+            string result = IbmConverter.ToString(bytes, startingIndex);
+
+            // Assert
+            Assert.AreEqual(result, "He");
+        }
+
+        [TestMethod]
+        public void ShouldConvertToStringGivenStartingIndex2()
+        {
+            // Arrange
+            var bytes = new byte[] { _H, _e, _l, _l, _o };
+            var startingIndex = 1;
+
+            // Act
+            string result = IbmConverter.ToString(bytes, startingIndex);
+
+            // Assert
+            Assert.AreEqual(result, "ello");
+        }
+
+        [TestMethod]
+        public void ShouldConvertToStringGivenIndexAndLength()
+        {
+            // Arrange
+            var bytes = new byte[] { _H, _o, _H, _o, _H, _o, _l, _e, _bang };
+            var startingIndex = 4;
+            var length = 4;
+
+            // Act
+            string result = IbmConverter.ToString(bytes, startingIndex, length);
+
+            // Assert
+            Assert.AreEqual("Hole", result);
+        }
+
+        [TestMethod]
+        public void ShouldConvertToStringGivenIndexAndLength2()
+        {
+            // Arrange
+            var bytes = new byte[] { _H, _o, _H, _o, _H, _o, _l, _e, _bang };
+            var startingIndex = 0;
+            var length = 6;
+
+            // Act
+            string result = IbmConverter.ToString(bytes, startingIndex, length);
+
+            // Assert
+            Assert.AreEqual("HoHoHo", result);
+        }
     }
 }
