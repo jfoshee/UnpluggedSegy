@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 
 namespace Unplugged.IbmBits
 {
@@ -14,14 +13,14 @@ namespace Unplugged.IbmBits
 
         public static Int16 ReadInt16BigEndian(this BinaryReader reader)
         {
-            var bytes = reader.ReadBytes(2).Reverse().ToArray();
-            return BitConverter.ToInt16(bytes, 0);
+            var bytes = reader.ReadBytes(2);
+            return IbmConverter.ToInt16(bytes);
         }
 
         public static Int32 ReadInt32BigEndian(this BinaryReader reader)
         {
-            var bytes = reader.ReadBytes(4).Reverse().ToArray();
-            return BitConverter.ToInt32(bytes, 0);
+            var bytes = reader.ReadBytes(4);
+            return IbmConverter.ToInt32(bytes);
         }
 
         public static float ReadSingleIbm(this BinaryReader reader)

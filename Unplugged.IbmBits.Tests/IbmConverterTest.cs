@@ -1,7 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestDrivenDesign;
-using System;
+﻿using System;
 using System.Collections;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Unplugged.IbmBits.Tests
 {
@@ -99,6 +98,92 @@ namespace Unplugged.IbmBits.Tests
 
             // Assert
             Assert.AreEqual("HoHoHo", result);
+        }
+
+        #endregion
+
+        #region ToInt16()
+
+        [TestMethod]
+        public void ShouldConvertZeroInt16()
+        {
+            // Arrange
+            var bytes = new byte[2];
+
+            // Act
+            Int16 result = IbmConverter.ToInt16(bytes);
+
+            // Assert
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod]
+        public void ShouldConvertNegativeInt16()
+        {
+            // Arrange
+            var bytes = new byte[] { 0xAB, 0xCD };
+
+            // Act
+            var result = IbmConverter.ToInt16(bytes);
+
+            // Assert
+            Assert.AreEqual(-21555, result);
+        }
+
+        [TestMethod]
+        public void ShouldIgnoreTrailingBytesInt16()
+        {
+            // Arrange
+            var bytes = new byte[] { 0, 1, 99, 99 };
+
+            // Act
+            var result = IbmConverter.ToInt16(bytes);
+
+            // Assert
+            Assert.AreEqual(1, result);
+        }
+
+        #endregion
+
+        #region ToInt32()
+
+        [TestMethod]
+        public void ShouldConvertZeroInt32()
+        {
+            // Arrange
+            var bytes = new byte[4];
+
+            // Act
+            Int32 result = IbmConverter.ToInt32(bytes);
+
+            // Assert
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod]
+        public void ShouldConvertNegativeInt32()
+        {
+            // Arrange
+            var bytes = new byte[] { 0x89, 0xAB, 0xCD, 0xEF };
+
+            // Act
+            var result = IbmConverter.ToInt32(bytes);
+
+            // Assert
+            Assert.AreEqual(-1985229329, result);
+        }
+
+        [TestMethod]
+        public void ShouldIgnoreTrailingBytesInt32()
+        {
+            // Arrange
+            var bytes = new byte[] { 0, 0, 0, 1, 99, 99 };
+
+            // Act
+            var result = IbmConverter.ToInt32(bytes);
+
+            // Assert
+            Assert.AreEqual(1, result);
         }
 
         #endregion

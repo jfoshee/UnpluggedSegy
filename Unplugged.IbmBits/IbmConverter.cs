@@ -23,6 +23,18 @@ namespace Unplugged.IbmBits
             return unicode.GetString(unicodeBytes);
         }
 
+        public static Int16 ToInt16(byte[] bytes)
+        {
+            bytes = new byte[] { bytes[1], bytes[0] };
+            return BitConverter.ToInt16(bytes, 0);
+        }
+
+        public static int ToInt32(byte[] bytes)
+        {
+            bytes = new byte[] { bytes[3], bytes[2], bytes[1], bytes[0] };
+            return BitConverter.ToInt32(bytes, 0);
+        }
+
         public static float ToSingle(byte[] bytes)
         {
             if (0 == BitConverter.ToInt32(bytes, 0))
@@ -45,7 +57,7 @@ namespace Unplugged.IbmBits
             // The fractional part is Big Endian unsigned int to the right of the radix point
             // So we reverse the bytes and pack them back into an int
             var fractionBytes = new byte[] { bytes[3], bytes[2], bytes[1], 0 };
-            var mantissa = BitConverter.ToInt32(fractionBytes, 0);
+            var mantissa = BitConverter.ToInt32(fractionBytes, 0);              // TODO: Test if mantissa should be converted with ToUint32
             // And divide by 2^(8 * 3) to move the decimal all the way to the left
             var dividend = 16777216; // Math.Pow(2, 8 * 3);
             var fraction = mantissa / (float)dividend;
