@@ -61,19 +61,6 @@ namespace Unplugged.IbmBits.Tests
             VerifyReadSingleIbm(expected, bits);
         }
 
-        [TestMethod]
-        public void SampleValueFromSegy()
-        {
-            // Arrange
-            var bytes = new byte[] { 0xc0, 0x1f, 0xf4, 0x62 };
-
-            // Act
-            var ibm = BinaryReaderExtensionMethods.ConvertFromIbmToIeee(bytes);
-
-            // Assert
-            Assert.AreEqual(-0.1248, ibm, 0.0001);
-        }
-
         // TODO: System.IO.EndOfStreamException: Unable to read beyond the end of the stream.
 
         private static void VerifyReadSingleIbm(float expected, BitArray bits)

@@ -6,6 +6,8 @@ namespace Unplugged.IbmBits.Tests
     [TestClass]
     public class IbmConverterTest : TestBase<IbmConverter>
     {
+        #region ToString()
+
         const byte _comma = 0x6B;
         const byte _bang = 0x5A;
         const byte _H = 0xC8;
@@ -96,5 +98,21 @@ namespace Unplugged.IbmBits.Tests
             // Assert
             Assert.AreEqual("HoHoHo", result);
         }
+
+        #endregion
+
+        [TestMethod]
+        public void SampleValueFromSegy()
+        {
+            // Arrange
+            var bytes = new byte[] { 0xc0, 0x1f, 0xf4, 0x62 };
+
+            // Act
+            var ibm = IbmConverter.ToSingle(bytes);
+
+            // Assert
+            Assert.AreEqual(-0.1248, ibm, 0.0001);
+        }
+
     }
 }
