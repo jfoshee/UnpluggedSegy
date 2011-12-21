@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,6 +7,14 @@ namespace Unplugged.IbmBits.Tests
     [TestClass]
     public class BinaryReaderExtensionMethodsTest
     {
+        #region ReadSingle()
+
+        [TestMethod]
+        public void ShouldConsume4Bytes()
+        {
+            AssertBytesConsumed(r => r.ReadSingleIbm(), 4);
+        }
+
         [TestMethod]
         public void ZeroShouldBeTheSame()
         {
@@ -17,58 +24,14 @@ namespace Unplugged.IbmBits.Tests
         }
 
         [TestMethod]
-        public void ShouldConsume4Bytes()
+        public void ShouldConvertFromIbmBitsExample()
         {
-            AssertBytesConsumed(r => r.ReadSingleIbm(), 4);
-        }
-
-        [TestMethod]
-        public void One()
-        {
-            var expected = 1f;
-            var bytes = new byte[4];
-            bytes[0] = 64 + 1; // 16^1 with bias of 64
-            bytes[1] = 16;     // 16 to the right of the decimal 
+            var bytes = new byte[] { 0xc0, 0x1f, 0xf4, 0x62 };
+            var expected = -0.124822736f;
             VerifyReadSingleIbm(expected, bytes);
-        }
-
-        [TestMethod]
-        public void NegativeOne()
-        {
-            var expected = -1f;
-            var bytes = new byte[4];
-            bytes[0] = 128 + 64 + 1; // +128 for negative sign in first bit
-            bytes[1] = 16;           // 16 to the right of the decimal 
-            VerifyReadSingleIbm(expected, bytes);
-        }
-
-        [TestMethod]
-        public void Wikipedia()
-        {
-            // This test comes from the example described here: http://en.wikipedia.org/wiki/IBM_Floating_Point_Architecture#An_Example
-            // The difference is the bits have to be reversed per byte because the highest order bit is on the right
-            // Arrange
-            var expected = -118.625f;
-            // 0100 0011 0110 1110 0000 0101 0000 0000
-            var bools = new bool[] 
-            {
-                false, true, false, false,  false, false, true, true,  
-                false, true, true, false,  true, true, true, false,  
-                false, false, false, false,  false, true, false, true,  
-                false, false, false, false,  false, false, false, false, 
-            };
-            var bits = new BitArray(bools);
-            VerifyReadSingleIbm(expected, bits);
         }
 
         // TODO: System.IO.EndOfStreamException: Unable to read beyond the end of the stream.
-
-        private static void VerifyReadSingleIbm(float expected, BitArray bits)
-        {
-            var bytes = new byte[4];
-            bits.CopyTo(bytes, 0);
-            VerifyReadSingleIbm(expected, bytes);
-        }
 
         private static void VerifyReadSingleIbm(float expected, byte[] bytes)
         {
@@ -82,6 +45,8 @@ namespace Unplugged.IbmBits.Tests
                 Assert.AreEqual(expected, actual);
             }
         }
+
+        #endregion
 
         public static void AssertBytesConsumed(Action<BinaryReader> act, int expectedNumberOfBytes)
         {

@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Unplugged.IbmBits
 {
-    public class IbmConverter
+    public static class IbmConverter
     {
         public static string ToString(byte[] bytes)
         {
