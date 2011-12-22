@@ -6,7 +6,6 @@ using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestDrivenDesign;
 using Unplugged.IbmBits;
-using Unplugged.IbmBits.Tests;
 
 namespace Unplugged.Segy.Tests
 {
@@ -102,7 +101,7 @@ namespace Unplugged.Segy.Tests
         [TestMethod]
         public void ShouldConsume400Bytes()
         {
-            BinaryReaderExtensionMethodsTest.AssertBytesConsumed((r) => Subject.ReadBinaryHeader(r), 400);
+            AssertBytesConsumed((r) => Subject.ReadBinaryHeader(r), 400);
         }
 
         [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
@@ -188,7 +187,7 @@ namespace Unplugged.Segy.Tests
         [TestMethod]
         public void ShouldConsume240Bytes()
         {
-            BinaryReaderExtensionMethodsTest.AssertBytesConsumed(r => Subject.ReadTraceHeader(r), 240);
+            AssertBytesConsumed(r => Subject.ReadTraceHeader(r), 240);
         }
 
         [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
@@ -229,7 +228,7 @@ namespace Unplugged.Segy.Tests
             IList<float> result = null;
 
             // Act
-            BinaryReaderExtensionMethodsTest.AssertBytesConsumed(r => result = Subject.ReadTrace(r, sampleFormat, sampleCount), expected);
+            AssertBytesConsumed(r => result = Subject.ReadTrace(r, sampleFormat, sampleCount), expected);
 
             // Assert
             Assert.AreEqual(sampleCount, result.Count);
@@ -380,6 +379,20 @@ namespace Unplugged.Segy.Tests
             bytes[byteNumber + 2] = samplesBytes[0];
         }
 
+        // TODO: Move AssertBytesConsumed to TDD lib
+        public static void AssertBytesConsumed(Action<BinaryReader> act, int expectedNumberOfBytes)
+        {
+            var bytes = new byte[2 * expectedNumberOfBytes];
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new BinaryReader(stream))
+            {
+                // Act
+                act(reader);
+
+                // Assert
+                Assert.AreEqual(expectedNumberOfBytes, stream.Position, "Wrong number of bytes were consumed.");
+            }
+        }
         #endregion
     }
 }

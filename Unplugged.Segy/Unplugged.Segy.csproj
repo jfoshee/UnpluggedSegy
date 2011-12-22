@@ -39,6 +39,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Unplugged.IbmBits">
+      <HintPath>..\packages\Unplugged.IbmBits.0.0.0.2\lib\net40\Unplugged.IbmBits.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FileHeader.cs" />
@@ -55,6 +58,7 @@
     <Compile Include="TraceHeader.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Unplugged.Segy.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

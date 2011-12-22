@@ -11,8 +11,5 @@
     <description>$description$</description>
     <copyright>Copyright 2011</copyright>
     <tags>SEG-Y, SEGY, SGY, Seismic, IBM</tags>
-    <dependencies>
-      <dependency id="Unplugged.IbmBits" />
-    </dependencies>
   </metadata>
 </package>

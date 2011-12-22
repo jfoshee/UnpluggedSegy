@@ -45,6 +45,9 @@
     <Reference Include="TestDrivenDesign">
       <HintPath>..\packages\TestDrivenDesign.0.0.3\lib\net40\TestDrivenDesign.dll</HintPath>
     </Reference>
+    <Reference Include="Unplugged.IbmBits">
+      <HintPath>..\packages\Unplugged.IbmBits.0.0.0.2\lib\net40\Unplugged.IbmBits.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
