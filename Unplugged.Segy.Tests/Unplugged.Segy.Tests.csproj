@@ -61,14 +61,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Unplugged.IbmBits.Tests\Unplugged.IbmBits.Tests.csproj">
-      <Project>{ADD3D4A7-2F0C-46C7-AC26-80C96698DC7C}</Project>
-      <Name>Unplugged.IbmBits.Tests</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Unplugged.IbmBits\Unplugged.IbmBits.csproj">
-      <Project>{A888F8BC-C046-4A45-8001-10C8C9FAB3AE}</Project>
-      <Name>Unplugged.IbmBits</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Unplugged.Segy\Unplugged.Segy.csproj">
       <Project>{096016A3-C38E-41C0-9853-4C4AF2DF8782}</Project>
       <Name>Unplugged.Segy</Name>

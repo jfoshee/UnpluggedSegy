@@ -55,12 +55,6 @@
     <Compile Include="TraceHeader.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Unplugged.IbmBits\Unplugged.IbmBits.csproj">
-      <Project>{A888F8BC-C046-4A45-8001-10C8C9FAB3AE}</Project>
-      <Name>Unplugged.IbmBits</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Unplugged.Segy.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
