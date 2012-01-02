@@ -12,6 +12,20 @@ namespace Unplugged.Segy.Tests
     [TestClass]
     public class SegyReaderTest : TestBase<SegyReader>
     {
+        #region Loading Options
+
+        [TestMethod]
+        public void InlineNumberLocation()
+        {
+            // Arrange
+            int inlineNumberLocation = Subject.InlineNumberLocation;
+
+            // Assert
+            Assert.AreEqual(189, inlineNumberLocation, "According to SEGY Rev 1, byte 189 - 192 in the trace header should be used for the in-line number");
+        }
+
+        #endregion
+
         /// The text header is typically 3200 EBCDIC encoded character bytes.  That is, 80 columns by 40 lines (formerly punch cards).
         #region Textual Header
 
@@ -159,13 +173,14 @@ namespace Unplugged.Segy.Tests
         }
 
         [TestMethod]
-        public void ShouldReadInlineNumberFromByte17()
+        public void ShouldReadInlineNumberFromSpecifiedByteLocation()
         {
             // Arrange
             Int32 expectedValue = Int16.MaxValue + 100;
+            Subject.InlineNumberLocation = 123;
 
             // Act
-            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 17, expectedValue);
+            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 123, expectedValue);
 
             // Assert
             Assert.AreEqual(expectedValue, result.InlineNumber);

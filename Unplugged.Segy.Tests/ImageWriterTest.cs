@@ -119,6 +119,7 @@ namespace Unplugged.Segy.Tests
             Subject.Write(segy, path);
 
             // Assert
+            BinaryFileAssert.Exists(path);
             TestContext.AddResultFile(path);
         }
 
@@ -126,7 +127,9 @@ namespace Unplugged.Segy.Tests
         //public void ImageFromExample3D()
         //{
         //    // Arrange
-        //    var segy = new SegyReader().Read(@"%userprofile%\Desktop\RMOTC Data\RMOTC Seismic data set\3D_Seismic\filt_mig.sgy");
+        //    var reader = new SegyReader { InlineNumberLocation = 17 };
+        //    var userprofile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        //    var segy = reader.Read(userprofile + @"\Desktop\RMOTC Data\RMOTC Seismic data set\3D_Seismic\filt_mig.sgy");
         //    var path = TestPath() + ".png";
 
         //    // Act

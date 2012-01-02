@@ -9,6 +9,13 @@ namespace Unplugged.Segy
 {
     public class SegyReader
     {
+        public int InlineNumberLocation { get; set; }
+
+        public SegyReader()
+        {
+            InlineNumberLocation = 189;
+        }
+
         public virtual ISegyFile Read(string path)
         {
             using (var stream = File.OpenRead(path))
@@ -56,18 +63,24 @@ namespace Unplugged.Segy
 
         public ITraceHeader ReadTraceHeader(BinaryReader reader)
         {
-            reader.ReadBytes(13 - 1);
-            var traceNumber = reader.ReadInt32BigEndian();
-            reader.ReadBytes(17 - 13 - 4);
-            int inlineNumber = 0;
-            if (reader.BaseStream.Position != reader.BaseStream.Length)
-                inlineNumber = reader.ReadInt32BigEndian();
-            reader.ReadBytes(115 - 17 - 4);
-            int sampleCount = 0;
-            if (reader.BaseStream.Position != reader.BaseStream.Length)
-                sampleCount = reader.ReadInt16BigEndian();
-            reader.ReadBytes(241 - 115 - 2);
-            return new TraceHeader { SampleCount = sampleCount, TraceNumber = traceNumber, CrosslineNumber = traceNumber, InlineNumber = inlineNumber };
+            var traceHeader = new TraceHeader();
+            var headerBytes = reader.ReadBytes(240);
+            if (headerBytes.Length >= 12 + 3)
+            {
+                var traceNumberBytes = headerBytes.Skip(12).ToArray();
+                traceHeader.CrosslineNumber = traceHeader.TraceNumber = IbmBits.IbmConverter.ToInt32(traceNumberBytes);
+            }
+            if (headerBytes.Length >= InlineNumberLocation + 3)
+            {
+                var inlineNumberBytes = headerBytes.Skip(InlineNumberLocation - 1).ToArray();
+                traceHeader.InlineNumber = IbmConverter.ToInt32(inlineNumberBytes);
+            }
+            if (headerBytes.Length >= 115 + 1)
+            {
+                var sampleCountBytes = headerBytes.Skip(114).ToArray();
+                traceHeader.SampleCount = IbmConverter.ToInt16(sampleCountBytes);
+            }
+            return traceHeader;
         }
 
         public ITrace ReadTrace(BinaryReader reader, FormatCode sampleFormat)
