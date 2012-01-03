@@ -19,9 +19,11 @@ namespace Unplugged.Segy.Tests
         {
             // Arrange
             int inlineNumberLocation = Subject.InlineNumberLocation;
+            int crosslineNumberLocation = Subject.CrosslineNumberLocation;
 
             // Assert
             Assert.AreEqual(189, inlineNumberLocation, "According to SEGY Rev 1, byte 189 - 192 in the trace header should be used for the in-line number");
+            Assert.AreEqual(193, crosslineNumberLocation, "According to SEGY Rev 1, byte 193 - 196 in the trace header should be used for the cross-line number");
         }
 
         #endregion
@@ -159,13 +161,14 @@ namespace Unplugged.Segy.Tests
         }
 
         [TestMethod]
-        public void ShouldReadTraceNumberFromByte13()
+        public void ShouldReadTraceNumberFromSpecifiedByteLocation()
         {
             // Arrange
             Int32 expectedValue = Int16.MaxValue + 100;
+            Subject.CrosslineNumberLocation = 113;
 
             // Act
-            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 13, expectedValue);
+            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 113, expectedValue);
 
             // Assert
             Assert.AreEqual(expectedValue, result.TraceNumber);

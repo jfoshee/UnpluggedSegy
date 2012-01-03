@@ -10,10 +10,12 @@ namespace Unplugged.Segy
     public class SegyReader
     {
         public int InlineNumberLocation { get; set; }
+        public int CrosslineNumberLocation { get; set; }
 
         public SegyReader()
         {
             InlineNumberLocation = 189;
+            CrosslineNumberLocation = 193;
         }
 
         public virtual ISegyFile Read(string path)
@@ -65,9 +67,9 @@ namespace Unplugged.Segy
         {
             var traceHeader = new TraceHeader();
             var headerBytes = reader.ReadBytes(240);
-            if (headerBytes.Length >= 12 + 3)
+            if (headerBytes.Length >= CrosslineNumberLocation + 3)
             {
-                var traceNumberBytes = headerBytes.Skip(12).ToArray();
+                var traceNumberBytes = headerBytes.Skip(CrosslineNumberLocation - 1).ToArray();
                 traceHeader.CrosslineNumber = traceHeader.TraceNumber = IbmBits.IbmConverter.ToInt32(traceNumberBytes);
             }
             if (headerBytes.Length >= InlineNumberLocation + 3)
