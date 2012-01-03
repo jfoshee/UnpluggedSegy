@@ -3,11 +3,14 @@ namespace Unplugged.Segy
 {
     public enum FormatCode
     {
-        IbmFloatingPoint4 = 1,
+        None,
+        IbmFloatingPoint4,
         TwosComplementInteger4,
         TwosComplementInteger2,
         FixedPointWithGain4,
         IeeeFloatingPoint4,
-        TwosComplementInteger1 = 8
+        Unused1,
+        Unused2,
+        TwosComplementInteger1
     }
 }

@@ -5,6 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unplugged.Segy.Tests", "Unp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{11DD3C5B-FC93-42FB-8065-3ACE2DDFCADB}"
 	ProjectSection(SolutionItems) = preProject
+		CodeAnalysisDictionary.xml = CodeAnalysisDictionary.xml
 		Local.testsettings = Local.testsettings
 		readme.md = readme.md
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
