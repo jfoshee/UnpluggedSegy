@@ -76,7 +76,7 @@ namespace Unplugged.Segy
             ).Distinct();
         }
 
-        private object FindRange(IList<ITrace> traces)
+        private static object FindRange(IList<ITrace> traces)
         {
             var min = float.MaxValue;
             var max = float.MinValue;
