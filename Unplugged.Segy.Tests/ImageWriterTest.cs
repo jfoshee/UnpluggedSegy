@@ -10,6 +10,16 @@ namespace Unplugged.Segy.Tests
     public class ImageWriterTest : TestBase<ImageWriter>
     {
         [TestMethod]
+        public void ImageWriterOptions()
+        {
+            // Arrange
+            bool setNullValuesToTransparent = Subject.SetNullValuesToTransparent;
+
+            // Assert
+            Assert.AreEqual(true, setNullValuesToTransparent);
+        }
+
+        [TestMethod]
         public void ShouldCreateImageFile()
         {
             // Arrange
@@ -83,6 +93,23 @@ namespace Unplugged.Segy.Tests
             Assert.AreEqual(255, image.GetPixel(0, 0).A);
             Assert.AreEqual(0, image.GetPixel(0, 1).A);
             Assert.AreEqual(255, image.GetPixel(0, 2).A);
+        }
+
+        [TestMethod]
+        public void WhenDisabledNullSamplesShouldNotBeTransparent()
+        {
+            // Arrange
+            var trace = new MockTrace { Values = new float[] { 0, 1, -1 } };
+            var segy = new MockSegyFile { Traces = new ITrace[] { trace } };
+            var path = TestPath() + ".png";
+
+            // Act
+            Subject.SetNullValuesToTransparent = false;
+            Subject.Write(segy, path);
+
+            // Assert
+            Bitmap image = new Bitmap(path);
+            Assert.AreEqual(255, image.GetPixel(0, 0).A);
         }
 
         [TestMethod]

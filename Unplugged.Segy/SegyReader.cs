@@ -96,8 +96,11 @@ namespace Unplugged.Segy
                     case FormatCode.IeeeFloatingPoint4:
                         trace[i] = reader.ReadSingle();
                         break;
+                    case FormatCode.TwosComplementInteger2:
+                        trace[i] = reader.ReadInt16BigEndian();
+                        break;
                     default:
-                        throw new NotSupportedException();
+                        throw new NotSupportedException("Unsupported sample format: " + sampleFormat.ToString());
                 }
             }
             return trace;

@@ -7,6 +7,13 @@ namespace Unplugged.Segy
 {
     public class ImageWriter
     {
+        public bool SetNullValuesToTransparent { get; set; }
+
+        public ImageWriter()
+        {
+            SetNullValuesToTransparent = true;
+        }
+
         public virtual void Write(ISegyFile segyFile, string path)
         {
             if (segyFile.Traces == null)
@@ -47,18 +54,18 @@ namespace Unplugged.Segy
             bitmap.Save(path);
         }
 
-        private static void AssignPixelColors(IList<ITrace> traces, int width, int height, Bitmap bitmap, float valueMin, float valueRange)
+        private void AssignPixelColors(IList<ITrace> traces, int width, int height, Bitmap bitmap, float valueMin, float valueRange)
         {
             for (int i = 0; i < width; i++)
                 for (int j = 0; j < height; j++)
                     SetPixel(traces, bitmap, valueMin, valueRange, i, j);
         }
 
-        private static void SetPixel(IList<ITrace> traces, Bitmap bitmap, float valueMin, float valueRange, int i, int j)
+        private void SetPixel(IList<ITrace> traces, Bitmap bitmap, float valueMin, float valueRange, int i, int j)
         {
             var value = traces[i].Values[j];
             var alpha = byte.MaxValue;
-            if (value == 0.0f) // Exactly zero is assumed to be a null sample
+            if (SetNullValuesToTransparent && value == 0.0f) // Exactly zero is assumed to be a null sample
                 alpha = byte.MinValue;
             int byteValue = (int)(byte.MaxValue * (value - valueMin) / valueRange);
             var color = Color.FromArgb(alpha, byteValue, byteValue, byteValue);

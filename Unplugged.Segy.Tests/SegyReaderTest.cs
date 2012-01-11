@@ -255,32 +255,33 @@ namespace Unplugged.Segy.Tests
         [TestMethod]
         public void ShouldReadSinglesForIeeeFormat()
         {
-            // Arrange
-            var sampleFormat = FormatCode.IeeeFloatingPoint4;
             var expected = new float[] { 10, 20, 30 };
-            var sampleCount = expected.Length;
-            IList<float> result = null;
             var bytes = BitConverter.GetBytes(10f).Concat(BitConverter.GetBytes(20f)).Concat(BitConverter.GetBytes(30f)).ToArray();
-
-            // Act
-            using (var stream = new MemoryStream(bytes))
-            using (var reader = new BinaryReader(stream))
-                result = Subject.ReadTrace(reader, sampleFormat, sampleCount);
-
-            // Assert
-            CollectionAssert.AreEqual(expected, result.ToList());
+            VerifyReadsSamplesOfGivenFormat(FormatCode.IeeeFloatingPoint4, expected, bytes);
         }
 
         [TestMethod]
         public void ShouldReadSingleIbmForIbmFormat()
         {
-            // Arrange
-            var sampleFormat = FormatCode.IbmFloatingPoint4;
-            var given = new int[] { 96795456, 2136281153, 1025579328 }; // TODO: This test would be clearer if I had code to convert TO IBM Float
+            // TODO: This test would be clearer if I had code to convert TO IBM Float
+            var bytes = BitConverter.GetBytes(96795456).Concat(BitConverter.GetBytes(2136281153)).Concat(BitConverter.GetBytes(1025579328)).ToArray();
             var expected = new float[] { 0.9834598f, 1.020873f, 0.09816343f };
-            var sampleCount = given.Length;
+            VerifyReadsSamplesOfGivenFormat(FormatCode.IbmFloatingPoint4, expected, bytes);
+        }
+
+        [TestMethod]
+        public void ShouldReadTwosComplementInteger2()
+        {
+            var expected = new float[] { -777, 888 };
+            var bytes = BitConverter.GetBytes((Int16)(-777)).Reverse().Concat(BitConverter.GetBytes((Int16)888).Reverse()).ToArray();
+            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger2, expected, bytes);
+        }
+
+        private void VerifyReadsSamplesOfGivenFormat(FormatCode sampleFormat, float[] expected, byte[] bytes)
+        {
+            // Arrange
+            var sampleCount = expected.Length;
             IList<float> result = null;
-            var bytes = BitConverter.GetBytes(given[0]).Concat(BitConverter.GetBytes(given[1])).Concat(BitConverter.GetBytes(given[2])).ToArray();
 
             // Act
             using (var stream = new MemoryStream(bytes))
