@@ -18,21 +18,29 @@ namespace Unplugged.Segy
         {
             if (segyFile.Traces == null)
             {
-                new Bitmap(1, 1).Save(path);
+                using (var bitmap = new Bitmap(1, 1))
+                    bitmap.Save(path);
                 return;
             }
-            dynamic range = FindRange(segyFile.Traces);
-            var valueRange = range.Max - range.Min;
             var inlineNumbers = GetInlineNumbers(segyFile);
             if (inlineNumbers.Count() == 1)
-                WriteBitmapForTraces(segyFile.Traces, path, range, valueRange);
+                Write(segyFile.Traces, path);
             else
-                WriteBitmapPerInline(segyFile, path, inlineNumbers, range, valueRange);
+            {
+                dynamic range = FindRange(segyFile.Traces);
+                WriteBitmapPerInline(segyFile, path, inlineNumbers, range);
+            }
+        }
+
+        public virtual void Write(IEnumerable<ITrace> traces, string path)
+        {
+            dynamic range = FindRange(traces);
+            WriteBitmapForTraces(traces, path, range);
         }
 
         #region Behind the Scenes
 
-        private void WriteBitmapPerInline(ISegyFile segyFile, string path, IEnumerable<int> inlineNumbers, dynamic range, dynamic valueRange)
+        private void WriteBitmapPerInline(ISegyFile segyFile, string path, IEnumerable<int> inlineNumbers, dynamic range)
         {
             foreach (var inline in inlineNumbers)
             {
@@ -40,18 +48,21 @@ namespace Unplugged.Segy
                 var filename = Path.GetFileNameWithoutExtension(path);
                 var extenstion = Path.GetExtension(path);
                 var newPath = filename + " (" + inline + ")" + extenstion;
-                WriteBitmapForTraces(traces, newPath, range, valueRange);
+                WriteBitmapForTraces(traces, newPath, range);
             }
         }
 
-        private void WriteBitmapForTraces(IEnumerable<ITrace> traces, string path, dynamic range, dynamic valueRange)
+        private void WriteBitmapForTraces(IEnumerable<ITrace> traces, string path, dynamic range)
         {
             var width = traces.Count();
             var height = traces.First().Values.Count;
-            var bitmap = new Bitmap(width, height);
-            if (valueRange != 0)
-                AssignPixelColors(traces.ToList(), width, height, bitmap, range.Min, valueRange);
-            bitmap.Save(path);
+            var valueRange = range.Max - range.Min;
+            using (var bitmap = new Bitmap(width, height))
+            {
+                if (valueRange != 0)
+                    AssignPixelColors(traces.ToList(), width, height, bitmap, range.Min, valueRange);
+                bitmap.Save(path);
+            }
         }
 
         private void AssignPixelColors(IList<ITrace> traces, int width, int height, Bitmap bitmap, float valueMin, float valueRange)
@@ -83,7 +94,7 @@ namespace Unplugged.Segy
             ).Distinct();
         }
 
-        private static object FindRange(IList<ITrace> traces)
+        private static object FindRange(IEnumerable<ITrace> traces)
         {
             var min = float.MaxValue;
             var max = float.MinValue;

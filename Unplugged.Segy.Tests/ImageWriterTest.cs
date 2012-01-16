@@ -150,6 +150,48 @@ namespace Unplugged.Segy.Tests
             TestContext.AddResultFile(path);
         }
 
+        [TestMethod]
+        public void ShouldCreateImageWithGivenTraces()
+        {
+            // Arrange
+            var values = new float[] { 1, 2, 3 };
+            var trace1 = new MockTrace { Values = new float[] { 20, 10, 25 } };
+            var trace2 = new MockTrace { Values = new float[] { 15, 30, 25 } };
+            IEnumerable<ITrace> traces = new ITrace[] { trace1, trace2 };
+            var path = TestPath() + ".jpg";
+
+            // Act
+            Subject.Write(traces, path);
+
+            // Assert
+            BinaryFileAssert.Exists(path);
+            TestContext.AddResultFile(path);
+            var image = new Bitmap(path);
+            Assert.AreEqual(2, image.Width);
+            Assert.AreEqual(3, image.Height);
+            Assert.AreEqual(Color.FromArgb(127, 127, 127), image.GetPixel(0, 0));
+        }
+
+        [TestMethod]
+        public void GivenTracesForCrosslineShouldCreateOneImage()
+        {
+            // Arrange
+            var trace1 = new MockTrace { Values = new float[] { 99}, Header = new MockTraceHeader { CrosslineNumber = 1, InlineNumber = 10 } };
+            var trace2 = new MockTrace { Values = new float[] { 77 }, Header = new MockTraceHeader { CrosslineNumber = 1, InlineNumber = 20 } };
+            IEnumerable<ITrace> traces = new ITrace[] { trace1, trace2 };
+            var path = TestPath() + ".jpg";
+
+            // Act
+            Subject.Write(traces, path);
+
+            // Assert
+            BinaryFileAssert.Exists(path);
+            TestContext.AddResultFile(path);
+            var image = new Bitmap(path);
+            Assert.AreEqual(2, image.Width);
+            Assert.AreEqual(1, image.Height);
+        }
+
         //[TestMethod]
         //public void ImageFromExample3D()
         //{
