@@ -7,9 +7,10 @@
     <authors>$author$</authors>
     <owners>$author$</owners>
     <projectUrl>https://github.com/jfoshee/UnpluggedSegy</projectUrl>
+    <iconUrl>https://github.com/jfoshee/UnpluggedSegy/raw/ce8bb8c0182852423afdd1fa254f5de13efbe5c3/Unplugged.Segy/icon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <copyright>Copyright 2011</copyright>
+    <copyright>Copyright Unplugged Development 2012</copyright>
     <tags>SEG-Y, SEGY, SGY, Seismic, IBM</tags>
   </metadata>
 </package>
