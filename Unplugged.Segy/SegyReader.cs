@@ -21,6 +21,11 @@ namespace Unplugged.Segy
         public virtual ISegyFile Read(string path)
         {
             using (var stream = File.OpenRead(path))
+                return Read(stream);
+        }
+
+        public ISegyFile Read(Stream stream)
+        {
             using (var reader = new BinaryReader(stream))
             {
                 var fileHeader = ReadFileHeader(reader);

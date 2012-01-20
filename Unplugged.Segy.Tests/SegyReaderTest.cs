@@ -328,6 +328,26 @@ namespace Unplugged.Segy.Tests
             ISegyFile result = Subject.Read(path);
 
             // Assert
+            VerifySegyValuesFromFile(path, result);
+        }
+
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ShouldReadStreamHeadersAndAllTraces()
+        {
+            // Arrange
+            var path = "lineE.sgy";
+            ISegyFile result = null;
+
+            // Act
+            using (Stream stream = File.OpenRead(path))
+                result = Subject.Read(stream);
+
+            // Assert
+            VerifySegyValuesFromFile(path, result);
+        }
+
+        private static void VerifySegyValuesFromFile(string path, ISegyFile result)
+        {
             StringAssert.Contains(result.Header.Text, "C16 GEOPHONES");
             Assert.AreEqual(FormatCode.IbmFloatingPoint4, result.Header.SampleFormat);
             Assert.AreEqual(1001, result.Traces.First().Header.SampleCount);
