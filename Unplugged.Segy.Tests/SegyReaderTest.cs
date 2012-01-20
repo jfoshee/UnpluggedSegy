@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestDrivenDesign;
@@ -346,6 +347,21 @@ namespace Unplugged.Segy.Tests
             VerifySegyValuesFromFile(path, result);
         }
 
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ShouldBeAbleToReadSegyFromNetworkStream()
+        {
+            // Arrange
+            var webclient = new WebClient();
+            using (var stream = webclient.OpenRead("https://github.com/jfoshee/UnpluggedSegy/raw/c44f0f65c4c80671964531cf5d45170fcb585d15/Unplugged.Segy.Tests/Examples/lineE.sgy"))
+            {
+                // Act
+                var segy = Subject.Read(stream);
+
+                // Assert
+                VerifySegyValuesFromFile("lineE.sgy", segy);
+            }
+        }
+
         private static void VerifySegyValuesFromFile(string path, ISegyFile result)
         {
             StringAssert.Contains(result.Header.Text, "C16 GEOPHONES");
@@ -381,7 +397,7 @@ namespace Unplugged.Segy.Tests
         private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int16 value)
         {
             // Arrange
-            var bytes = new byte[byteNumber + 1];
+            var bytes = new byte[400];
             SetBigIndianValue(value, bytes, byteNumber);
 
             // Act
@@ -393,7 +409,7 @@ namespace Unplugged.Segy.Tests
         private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int32 value)
         {
             // Arrange
-            var bytes = new byte[byteNumber + 3];
+            var bytes = new byte[400];
             SetBigIndianValue(value, bytes, byteNumber);
 
             // Act

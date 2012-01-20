@@ -24,15 +24,17 @@ namespace Unplugged.Segy
                 return Read(stream);
         }
 
-        public ISegyFile Read(Stream stream)
+        public virtual ISegyFile Read(Stream stream)
         {
             using (var reader = new BinaryReader(stream))
             {
                 var fileHeader = ReadFileHeader(reader);
                 var traces = new List<ITrace>();
-                while (stream.Position != stream.Length)
+                while (true)
                 {
                     var trace = ReadTrace(reader, fileHeader.SampleFormat);
+                    if (trace == null)
+                        break;
                     traces.Add(trace);
                 }
                 return new SegyFile { Header = fileHeader, Traces = traces };
@@ -72,6 +74,8 @@ namespace Unplugged.Segy
         {
             var traceHeader = new TraceHeader();
             var headerBytes = reader.ReadBytes(240);
+            if (headerBytes.Length < 240)
+                return null;
             if (headerBytes.Length >= CrosslineNumberLocation + 3)
                 traceHeader.CrosslineNumber = traceHeader.TraceNumber = IbmBits.IbmConverter.ToInt32(headerBytes, CrosslineNumberLocation - 1);
             if (headerBytes.Length >= InlineNumberLocation + 3)
@@ -84,6 +88,8 @@ namespace Unplugged.Segy
         public virtual ITrace ReadTrace(BinaryReader reader, FormatCode sampleFormat)
         {
             var header = ReadTraceHeader(reader);
+            if (header == null)
+                return null;
             var values = ReadTrace(reader, sampleFormat, header.SampleCount);
             return new Trace { Header = header, Values = values };
         }
