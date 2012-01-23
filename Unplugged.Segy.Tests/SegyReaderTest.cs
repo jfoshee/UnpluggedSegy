@@ -96,6 +96,22 @@ namespace Unplugged.Segy.Tests
             Assert.AreEqual(line3, lines[2]);
         }
 
+        [TestMethod]
+        public void ShouldDetectAsciiHeaderByFirstCharacter()
+        {
+            // Arrange
+            var expected = "C 1 This is expected";
+            var extra = new string('z', 80); 
+            File.WriteAllText(TestPath(), expected + extra, Encoding.ASCII);
+
+            // Act
+            var header = Subject.ReadTextHeader(TestPath());
+
+            // Assert
+            StringAssert.StartsWith(header, expected);
+            Assert.AreEqual(2, SplitLines(header).Count(), "Should split lines for ascii header");
+        }
+
         #endregion
 
         /// 400-byte Binary File Header follows 3200 byte textual header
@@ -364,6 +380,7 @@ namespace Unplugged.Segy.Tests
 
         private static void VerifySegyValuesFromFile(string path, ISegyFile result)
         {
+            StringAssert.StartsWith(result.Header.Text, "C 1");
             StringAssert.Contains(result.Header.Text, "C16 GEOPHONES");
             Assert.AreEqual(FormatCode.IbmFloatingPoint4, result.Header.SampleFormat);
             Assert.AreEqual(1001, result.Traces.First().Header.SampleCount);
@@ -391,7 +408,7 @@ namespace Unplugged.Segy.Tests
 
         private static string[] SplitLines(string header)
         {
-            return header.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+            return header.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int16 value)

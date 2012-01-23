@@ -50,7 +50,10 @@ namespace Unplugged.Segy
 
         public virtual string ReadTextHeader(BinaryReader reader)
         {
-            var text = reader.ReadStringEbcdic(40 * 80);
+            var bytes = reader.ReadBytes(_textRows * _textColumns);
+            string text = (bytes[0] == 'C') ?
+                ASCIIEncoding.Default.GetString(bytes) :
+                IbmConverter.ToString(bytes);
             return InsertNewLines(text);
         }
 
@@ -119,12 +122,15 @@ namespace Unplugged.Segy
 
         #region Behind the Scenes
 
+        private const int _textColumns = 80;
+        private const int _textRows = 40;
+
         private static string InsertNewLines(string text)
         {
-            var result = new StringBuilder(text.Length + 40);
-            for (int i = 0; i < 1 + text.Length / 80; i++)
+            var result = new StringBuilder(text.Length + _textRows);
+            for (int i = 0; i < 1 + text.Length / _textColumns; i++)
             {
-                var line = new string(text.Skip(80 * i).Take(80).ToArray());
+                var line = new string(text.Skip(_textColumns * i).Take(_textColumns).ToArray());
                 result.AppendLine(line);
             }
             return result.ToString();
