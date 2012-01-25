@@ -18,6 +18,8 @@ namespace Unplugged.Segy
             CrosslineNumberLocation = 193;
         }
 
+        #region From the Top: Methods that start reading from the beginning of the file
+
         public virtual ISegyFile Read(string path)
         {
             using (var stream = File.OpenRead(path))
@@ -41,30 +43,6 @@ namespace Unplugged.Segy
             }
         }
 
-        public virtual string ReadTextHeader(string path)
-        {
-            using (var stream = File.OpenRead(path))
-            using (var reader = new BinaryReader(stream))
-                return ReadTextHeader(reader);
-        }
-
-        public virtual string ReadTextHeader(BinaryReader reader)
-        {
-            var bytes = reader.ReadBytes(_textRows * _textColumns);
-            string text = (bytes[0] == 'C') ?
-                ASCIIEncoding.Default.GetString(bytes) :
-                IbmConverter.ToString(bytes);
-            return InsertNewLines(text);
-        }
-
-        public virtual IFileHeader ReadBinaryHeader(BinaryReader reader)
-        {
-            reader.ReadBytes(24);
-            var sampleFormat = (FormatCode)reader.ReadInt16BigEndian();
-            reader.ReadBytes(400 - 24 - 2);
-            return new FileHeader { SampleFormat = sampleFormat };
-        }
-
         public virtual IFileHeader ReadFileHeader(BinaryReader reader)
         {
             var text = ReadTextHeader(reader);
@@ -73,18 +51,51 @@ namespace Unplugged.Segy
             return header;
         }
 
+        public virtual string ReadTextHeader(string path)
+        {
+            using (var stream = File.OpenRead(path))
+                return ReadTextHeader(stream);
+        }
+
+        public virtual string ReadTextHeader(Stream stream)
+        {
+            using (var reader = new BinaryReader(stream))
+                return ReadTextHeader(reader);
+        }
+
+        public virtual string ReadTextHeader(BinaryReader reader)
+        {
+            var bytes = reader.ReadBytes(_textHeaderSize);
+            string text = (bytes[0] == 'C') ?
+                ASCIIEncoding.Default.GetString(bytes) :
+                IbmConverter.ToString(bytes);
+            return InsertNewLines(text);
+        }
+
+        #endregion
+
+        #region Already in progress: Methods that start reading from the current location in the stream
+
+        public virtual IFileHeader ReadBinaryHeader(BinaryReader reader)
+        {
+            reader.ReadBytes(_sampleFormatLocation);
+            var sampleFormat = (FormatCode)reader.ReadInt16BigEndian();
+            reader.ReadBytes(_binaryHeaderSize - _sampleFormatLocation - 2);
+            return new FileHeader { SampleFormat = sampleFormat };
+        }
+
         public virtual ITraceHeader ReadTraceHeader(BinaryReader reader)
         {
             var traceHeader = new TraceHeader();
-            var headerBytes = reader.ReadBytes(240);
-            if (headerBytes.Length < 240)
+            var headerBytes = reader.ReadBytes(_traceHeaderSize);
+            if (headerBytes.Length < _traceHeaderSize)
                 return null;
             if (headerBytes.Length >= CrosslineNumberLocation + 3)
                 traceHeader.CrosslineNumber = traceHeader.TraceNumber = IbmBits.IbmConverter.ToInt32(headerBytes, CrosslineNumberLocation - 1);
             if (headerBytes.Length >= InlineNumberLocation + 3)
                 traceHeader.InlineNumber = IbmConverter.ToInt32(headerBytes, InlineNumberLocation - 1);
-            if (headerBytes.Length >= 115 + 1)
-                traceHeader.SampleCount = IbmConverter.ToInt16(headerBytes, 114);
+            if (headerBytes.Length >= _sampleCountLocation + 1)
+                traceHeader.SampleCount = IbmConverter.ToInt16(headerBytes, _sampleCountLocation - 1);
             return traceHeader;
         }
 
@@ -120,10 +131,17 @@ namespace Unplugged.Segy
             return trace;
         }
 
+        #endregion
+
         #region Behind the Scenes
 
         private const int _textColumns = 80;
         private const int _textRows = 40;
+        private const int _textHeaderSize = _textRows * _textColumns;
+        private const int _binaryHeaderSize = 400;
+        private const int _traceHeaderSize = 240;
+        private const int _sampleFormatLocation = 24;
+        private const int _sampleCountLocation = 115;
 
         private static string InsertNewLines(string text)
         {

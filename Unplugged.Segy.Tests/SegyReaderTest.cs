@@ -76,6 +76,20 @@ namespace Unplugged.Segy.Tests
             StringAssert.EndsWith(header.TrimEnd(), "END EBCDIC");
         }
 
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ShouldReadTextHeaderGivenStream()
+        {
+            // Arrange
+            using (Stream stream = File.OpenRead("lineE.sgy"))
+            {
+                // Act
+                string header = Subject.ReadTextHeader(stream);
+
+                // Arrange
+                StringAssert.EndsWith(header.TrimEnd(), "END EBCDIC");
+            }
+        }
+
         [TestMethod]
         public void ShouldInsertNewlinesEvery80Characters()
         {
@@ -101,7 +115,7 @@ namespace Unplugged.Segy.Tests
         {
             // Arrange
             var expected = "C 1 This is expected";
-            var extra = new string('z', 80); 
+            var extra = new string('z', 80);
             File.WriteAllText(TestPath(), expected + extra, Encoding.ASCII);
 
             // Act
