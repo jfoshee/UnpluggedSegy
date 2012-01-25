@@ -31,7 +31,7 @@ namespace Unplugged.Segy
             return Read(stream, int.MaxValue);
         }
 
-        public ISegyFile Read(Stream stream, int traceCount)
+        public virtual ISegyFile Read(Stream stream, int traceCount)
         {
             using (var reader = new BinaryReader(stream))
             {

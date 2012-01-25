@@ -444,6 +444,17 @@ namespace Unplugged.Segy.Tests
             Assert.AreEqual((fileLength - 3200 - 400) / (240 + 1001 * 4), result.Traces.Count);
         }
 
+        [TestMethod]
+        public void AllReadMethodsShouldBeMockable()
+        {
+            // Act
+            var readMethods = typeof(SegyReader).GetMethods().Where(m => m.Name == "Read");
+
+            // Assert
+            foreach (var method in readMethods)
+                Assert.IsTrue(method.IsVirtual);
+        }
+
         #endregion
 
         #region Behind the scenes
