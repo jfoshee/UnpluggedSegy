@@ -67,7 +67,7 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadExampleTextHeader()
         {
             // Act
-            var header = Subject.ReadTextHeader("lineE.sgy");
+            var header = Subject.ReadTextHeader(_example);
 
             // Assert
             Console.WriteLine(header);
@@ -80,7 +80,7 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadTextHeaderGivenStream()
         {
             // Arrange
-            using (Stream stream = File.OpenRead("lineE.sgy"))
+            using (Stream stream = File.OpenRead(_example))
             {
                 // Act
                 string header = Subject.ReadTextHeader(stream);
@@ -155,14 +155,14 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadTextAndBinaryHeaderGivenBinaryReader()
         {
             // Arrange
-            using (var stream = File.OpenRead("lineE.sgy"))
+            using (var stream = File.OpenRead(_example))
             using (var reader = new BinaryReader(stream))
             {
                 // Act
                 IFileHeader fileHeader = Subject.ReadFileHeader(reader);
 
                 // Assert
-                Assert.AreEqual(Subject.ReadTextHeader("lineE.sgy"), fileHeader.Text);
+                Assert.AreEqual(Subject.ReadTextHeader(_example), fileHeader.Text);
                 Assert.AreEqual(FormatCode.IbmFloatingPoint4, fileHeader.SampleFormat);
             }
         }
@@ -243,7 +243,7 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadTraceHeaderFromExample()
         {
             // Arrange
-            using (var stream = File.OpenRead("lineE.sgy"))
+            using (var stream = File.OpenRead(_example))
             using (var reader = new BinaryReader(stream))
             {
                 var header = Subject.ReadFileHeader(reader);
@@ -353,28 +353,28 @@ namespace Unplugged.Segy.Tests
         public void ShouldReadFileHeadersAndAllTraces()
         {
             // Arrange
-            var path = "lineE.sgy";
+            var path = _example;
 
             // Act
-            ISegyFile result = Subject.Read(path);
+            ISegyFile segy = Subject.Read(path);
 
             // Assert
-            VerifySegyValuesFromFile(path, result);
+            VerifyExampleValuesAndTraceCount(segy);
         }
 
         [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
         public void ShouldReadStreamHeadersAndAllTraces()
         {
             // Arrange
-            var path = "lineE.sgy";
-            ISegyFile result = null;
+            var path = _example;
+            ISegyFile segy = null;
 
             // Act
             using (Stream stream = File.OpenRead(path))
-                result = Subject.Read(stream);
+                segy = Subject.Read(stream);
 
             // Assert
-            VerifySegyValuesFromFile(path, result);
+            VerifyExampleValuesAndTraceCount(segy);
         }
 
         [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
@@ -388,11 +388,43 @@ namespace Unplugged.Segy.Tests
                 var segy = Subject.Read(stream);
 
                 // Assert
-                VerifySegyValuesFromFile("lineE.sgy", segy);
+                VerifyExampleValuesAndTraceCount(segy);
             }
         }
 
-        private static void VerifySegyValuesFromFile(string path, ISegyFile result)
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ShouldReadNoMoreThanRequestedNumberOfTraces()
+        {
+            // Arrange
+            int traceCount = 5;
+            using (Stream stream = File.OpenRead(_example))
+            {
+                // Act
+                ISegyFile segy = Subject.Read(stream, traceCount);
+
+                // Assert
+                VerifyExampleValues(segy);
+                Assert.AreEqual(traceCount, segy.Traces.Count);
+            }
+        }
+
+        [TestMethod, DeploymentItem(@"Unplugged.Segy.Tests\Examples\lineE.sgy")]
+        public void ShouldReadAllTracesIfRequestedTraceCountIsGreater()
+        {
+            // Arrange
+            using (Stream stream = File.OpenRead(_example))
+            {
+                // Act
+                ISegyFile segy = Subject.Read(stream, 9999);
+
+                // Assert
+                VerifyExampleValuesAndTraceCount(segy);
+            }
+        }
+
+        private const string _example = "lineE.sgy";
+
+        private static void VerifyExampleValues(ISegyFile result)
         {
             StringAssert.StartsWith(result.Header.Text, "C 1");
             StringAssert.Contains(result.Header.Text, "C16 GEOPHONES");
@@ -403,7 +435,12 @@ namespace Unplugged.Segy.Tests
             CollectionAssert.Contains(traceValues, 0f);
             CollectionAssert.Contains(traceValues, 0.9834598f);
             CollectionAssert.DoesNotContain(traceValues, float.PositiveInfinity);
-            var fileLength = new FileInfo(path).Length;
+        }
+
+        private static void VerifyExampleValuesAndTraceCount(ISegyFile result)
+        {
+            VerifyExampleValues(result);
+            var fileLength = new FileInfo(_example).Length;
             Assert.AreEqual((fileLength - 3200 - 400) / (240 + 1001 * 4), result.Traces.Count);
         }
 

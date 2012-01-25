@@ -28,11 +28,16 @@ namespace Unplugged.Segy
 
         public virtual ISegyFile Read(Stream stream)
         {
+            return Read(stream, int.MaxValue);
+        }
+
+        public ISegyFile Read(Stream stream, int traceCount)
+        {
             using (var reader = new BinaryReader(stream))
             {
                 var fileHeader = ReadFileHeader(reader);
                 var traces = new List<ITrace>();
-                while (true)
+                for (int i = 0; i < traceCount; i++)
                 {
                     var trace = ReadTrace(reader, fileHeader.SampleFormat);
                     if (trace == null)
