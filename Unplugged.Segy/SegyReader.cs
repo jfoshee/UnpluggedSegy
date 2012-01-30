@@ -83,10 +83,14 @@ namespace Unplugged.Segy
 
         public virtual IFileHeader ReadBinaryHeader(BinaryReader reader)
         {
-            reader.ReadBytes(_sampleFormatLocation);
-            var sampleFormat = (FormatCode)reader.ReadInt16BigEndian();
-            reader.ReadBytes(_binaryHeaderSize - _sampleFormatLocation - 2);
-            return new FileHeader { SampleFormat = sampleFormat };
+            var binaryHeader = reader.ReadBytes(_binaryHeaderSize);
+            var byte0 = binaryHeader[_sampleFormatIndex];
+            var byte1 = binaryHeader[_sampleFormatIndex + 1];
+            bool isLittleEndian = (byte1 == 0);
+            var sampleFormat = isLittleEndian ?
+                    (FormatCode)byte0 :
+                    (FormatCode)byte1;
+            return new FileHeader { SampleFormat = sampleFormat, IsLittleEndian = isLittleEndian };
         }
 
         public virtual ITraceHeader ReadTraceHeader(BinaryReader reader)
@@ -99,8 +103,8 @@ namespace Unplugged.Segy
                 traceHeader.CrosslineNumber = traceHeader.TraceNumber = IbmBits.IbmConverter.ToInt32(headerBytes, CrosslineNumberLocation - 1);
             if (headerBytes.Length >= InlineNumberLocation + 3)
                 traceHeader.InlineNumber = IbmConverter.ToInt32(headerBytes, InlineNumberLocation - 1);
-            if (headerBytes.Length >= _sampleCountLocation + 1)
-                traceHeader.SampleCount = IbmConverter.ToInt16(headerBytes, _sampleCountLocation - 1);
+            if (headerBytes.Length >= _sampleCountIndex + 2)
+                traceHeader.SampleCount = IbmConverter.ToInt16(headerBytes, _sampleCountIndex);
             return traceHeader;
         }
 
@@ -145,8 +149,8 @@ namespace Unplugged.Segy
         private const int _textHeaderSize = _textRows * _textColumns;
         private const int _binaryHeaderSize = 400;
         private const int _traceHeaderSize = 240;
-        private const int _sampleFormatLocation = 24;
-        private const int _sampleCountLocation = 115;
+        private const int _sampleFormatIndex = 24;
+        private const int _sampleCountIndex = 114;
 
         private static string InsertNewLines(string text)
         {

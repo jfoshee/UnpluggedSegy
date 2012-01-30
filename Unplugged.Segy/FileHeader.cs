@@ -5,5 +5,6 @@ namespace Unplugged.Segy
     {
         public string Text { get; set; }
         public FormatCode SampleFormat { get; set; }
+        public bool IsLittleEndian { get; set; }
     }
 }

@@ -143,6 +143,22 @@ namespace Unplugged.Segy.Tests
 
             // Assert
             Assert.AreEqual(expected, result.SampleFormat);
+            Assert.AreEqual(false, result.IsLittleEndian);
+        }
+
+        [TestMethod]
+        public void ShouldDetectLittleEndiannessFromSampleFormat()
+        {
+            // Arrange
+            var expected = FormatCode.TwosComplementInteger1;
+            var swapped = BitConverter.ToInt16(BitConverter.GetBytes((Int16)expected).Reverse().ToArray(), 0);
+
+            // Act
+            IFileHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadBinaryHeader(br), 25, swapped);
+
+            // Assert
+            Assert.AreEqual(expected, result.SampleFormat);
+            Assert.AreEqual(true, result.IsLittleEndian);
         }
 
         [TestMethod]
