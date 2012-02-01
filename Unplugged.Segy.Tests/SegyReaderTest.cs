@@ -137,13 +137,14 @@ namespace Unplugged.Segy.Tests
         {
             // Arrange
             var expected = FormatCode.IeeeFloatingPoint4;
+            bool isLittleEndian = false;
 
             // Act
-            IFileHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadBinaryHeader(br), 25, (Int16)expected);
+            IFileHeader result = Set16BitValueInBinaryStreamAndRead((sr, br) => sr.ReadBinaryHeader(br), 25, (Int16)expected, isLittleEndian);
 
             // Assert
             Assert.AreEqual(expected, result.SampleFormat);
-            Assert.AreEqual(false, result.IsLittleEndian);
+            Assert.AreEqual(isLittleEndian, result.IsLittleEndian);
         }
 
         [TestMethod]
@@ -151,14 +152,14 @@ namespace Unplugged.Segy.Tests
         {
             // Arrange
             var expected = FormatCode.TwosComplementInteger1;
-            var swapped = BitConverter.ToInt16(BitConverter.GetBytes((Int16)expected).Reverse().ToArray(), 0);
+            bool isLittleEndian = true;
 
             // Act
-            IFileHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadBinaryHeader(br), 25, swapped);
+            IFileHeader result = Set16BitValueInBinaryStreamAndRead((sr, br) => sr.ReadBinaryHeader(br), 25, (Int16)expected, isLittleEndian);
 
             // Assert
             Assert.AreEqual(expected, result.SampleFormat);
-            Assert.AreEqual(true, result.IsLittleEndian);
+            Assert.AreEqual(isLittleEndian, result.IsLittleEndian);
         }
 
         [TestMethod]
@@ -215,7 +216,7 @@ namespace Unplugged.Segy.Tests
             Subject.CrosslineNumberLocation = 113;
 
             // Act
-            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 113, expectedValue);
+            ITraceHeader result = Set32BitValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), Subject.CrosslineNumberLocation, expectedValue);
 
             // Assert
             Assert.AreEqual(expectedValue, result.TraceNumber);
@@ -230,7 +231,7 @@ namespace Unplugged.Segy.Tests
             Subject.InlineNumberLocation = 123;
 
             // Act
-            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 123, expectedValue);
+            ITraceHeader result = Set32BitValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), Subject.InlineNumberLocation, expectedValue);
 
             // Assert
             Assert.AreEqual(expectedValue, result.InlineNumber);
@@ -243,7 +244,7 @@ namespace Unplugged.Segy.Tests
             Int16 expectedValue = 2345;
 
             // Act
-            ITraceHeader result = SetValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 115, expectedValue);
+            ITraceHeader result = Set16BitValueInBinaryStreamAndRead((sr, br) => sr.ReadTraceHeader(br), 115, expectedValue, false);
 
             // Assert
             Assert.AreEqual(expectedValue, result.SampleCount);
@@ -489,11 +490,14 @@ namespace Unplugged.Segy.Tests
             return header.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int16 value)
+        private TResult Set16BitValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int16 value, bool isLittleEndian)
         {
             // Arrange
             var bytes = new byte[400];
-            SetBigIndianValue(value, bytes, byteNumber);
+            if (isLittleEndian)
+                BitConverter.GetBytes(value).CopyTo(bytes, byteNumber - 1);
+            else
+                SetBigIndianValue(value, bytes, byteNumber);
 
             // Act
             using (var stream = new MemoryStream(bytes))
@@ -501,7 +505,7 @@ namespace Unplugged.Segy.Tests
                 return act(Subject, reader);
         }
 
-        private TResult SetValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int32 value)
+        private TResult Set32BitValueInBinaryStreamAndRead<TResult>(Func<SegyReader, BinaryReader, TResult> act, int byteNumber, Int32 value)
         {
             // Arrange
             var bytes = new byte[400];
