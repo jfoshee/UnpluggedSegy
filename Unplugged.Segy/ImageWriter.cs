@@ -34,8 +34,19 @@ namespace Unplugged.Segy
 
         public virtual void Write(IEnumerable<ITrace> traces, string path)
         {
+            using (var bitmap = GetBitmap(traces))
+                bitmap.Save(path);
+        }
+
+        public Bitmap GetBitmap(ISegyFile segyFile)
+        {
+            return GetBitmap(segyFile.Traces);
+        }
+
+        public Bitmap GetBitmap(IEnumerable<ITrace> traces)
+        {
             dynamic range = FindRange(traces);
-            WriteBitmapForTraces(traces, path, range);
+            return GetBitmap(traces, range);
         }
 
         #region Behind the Scenes
@@ -54,15 +65,19 @@ namespace Unplugged.Segy
 
         private void WriteBitmapForTraces(IEnumerable<ITrace> traces, string path, dynamic range)
         {
+            using (var bitmap = GetBitmap(traces, range))
+                bitmap.Save(path);
+        }
+
+        private Bitmap GetBitmap(IEnumerable<ITrace> traces, dynamic range)
+        {
             var width = traces.Count();
             var height = traces.First().Values.Count;
             var valueRange = range.Max - range.Min;
-            using (var bitmap = new Bitmap(width, height))
-            {
-                if (valueRange != 0)
-                    AssignPixelColors(traces.ToList(), width, height, bitmap, range.Min, valueRange);
-                bitmap.Save(path);
-            }
+            var bitmap = new Bitmap(width, height);
+            if (valueRange != 0)
+                AssignPixelColors(traces.ToList(), width, height, bitmap, range.Min, valueRange);
+            return bitmap;
         }
 
         private void AssignPixelColors(IList<ITrace> traces, int width, int height, Bitmap bitmap, float valueMin, float valueRange)

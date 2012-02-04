@@ -37,24 +37,40 @@ namespace Unplugged.Segy.Tests
         }
 
         [TestMethod]
+        public void ShouldGetBitmapWithoutWritingIt()
+        {
+            // Arrange
+            var expectedWidth = 5;
+            var expectedHeight = 21;
+            var segy = new MockSegyFile(expectedWidth, expectedHeight);
+
+            // Act
+            Bitmap image = Subject.GetBitmap((ISegyFile)segy);
+
+            // Assert
+            Assert.AreEqual(expectedWidth, image.Width);
+            Assert.AreEqual(expectedHeight, image.Height);
+            image.Dispose();
+        }
+
+        [TestMethod]
         public void ShouldHaveCorrectResolution()
         {
             // Arrange
+            var expectedWidth = 7;
+            var expectedHeight = 11;
+            var segy = new MockSegyFile(expectedWidth, expectedHeight);
             var path = TestPath() + ".png";
-            var expectedWidth = 5;
-            var expectedHeight = 21;
-            var trace = new MockTrace { Values = new float[expectedHeight] };
-            var segy = new MockSegyFile { Traces = new ITrace[expectedWidth] };
-            for (int i = 0; i < expectedWidth; i++)
-                segy.Traces[i] = trace;
 
             // Act
             Subject.Write(segy, path);
 
             // Assert
-            var image = Bitmap.FromFile(path);
-            Assert.AreEqual(expectedWidth, image.Width);
-            Assert.AreEqual(expectedHeight, image.Height);
+            using (var image = Bitmap.FromFile(path))
+            {
+                Assert.AreEqual(expectedWidth, image.Width);
+                Assert.AreEqual(expectedHeight, image.Height);
+            }
         }
 
         [TestMethod]
@@ -154,10 +170,7 @@ namespace Unplugged.Segy.Tests
         public void ShouldCreateImageWithGivenTraces()
         {
             // Arrange
-            var values = new float[] { 1, 2, 3 };
-            var trace1 = new MockTrace { Values = new float[] { 20, 10, 25 } };
-            var trace2 = new MockTrace { Values = new float[] { 15, 30, 25 } };
-            IEnumerable<ITrace> traces = new ITrace[] { trace1, trace2 };
+            IEnumerable<ITrace> traces = MockTraces2x3();
             var path = TestPath() + ".jpg";
 
             // Act
@@ -167,16 +180,43 @@ namespace Unplugged.Segy.Tests
             BinaryFileAssert.Exists(path);
             TestContext.AddResultFile(path);
             var image = new Bitmap(path);
+            VerifyBitmapFromMockTraces2x3(image);
+        }
+
+        [TestMethod]
+        public void ShouldGetBitmapWithGivenTraces()
+        {
+            // Arrange
+            IEnumerable<ITrace> traces = MockTraces2x3();
+
+            // Act
+            Bitmap image = Subject.GetBitmap(traces);
+
+            // Assert
+            VerifyBitmapFromMockTraces2x3(image);
+        }
+
+        private static IEnumerable<ITrace> MockTraces2x3()
+        {
+            var values = new float[] { 1, 2, 3 };
+            var trace1 = new MockTrace { Values = new float[] { 20, 10, 25 } };
+            var trace2 = new MockTrace { Values = new float[] { 15, 30, 25 } };
+            return new ITrace[] { trace1, trace2 };
+        }
+
+        private static void VerifyBitmapFromMockTraces2x3(Bitmap image)
+        {
             Assert.AreEqual(2, image.Width);
             Assert.AreEqual(3, image.Height);
             Assert.AreEqual(Color.FromArgb(127, 127, 127), image.GetPixel(0, 0));
+            image.Dispose();
         }
 
         [TestMethod]
         public void GivenTracesForCrosslineShouldCreateOneImage()
         {
             // Arrange
-            var trace1 = new MockTrace { Values = new float[] { 99}, Header = new MockTraceHeader { CrosslineNumber = 1, InlineNumber = 10 } };
+            var trace1 = new MockTrace { Values = new float[] { 99 }, Header = new MockTraceHeader { CrosslineNumber = 1, InlineNumber = 10 } };
             var trace2 = new MockTrace { Values = new float[] { 77 }, Header = new MockTraceHeader { CrosslineNumber = 1, InlineNumber = 20 } };
             IEnumerable<ITrace> traces = new ITrace[] { trace1, trace2 };
             var path = TestPath() + ".jpg";
@@ -230,6 +270,18 @@ namespace Unplugged.Segy.Tests
     {
         public IFileHeader Header { get; set; }
         public IList<ITrace> Traces { get; set; }
+
+        public MockSegyFile()
+        {
+        }
+
+        public MockSegyFile(int traces, int samplesPerTrace)
+        {
+            var trace = new MockTrace { Values = new float[samplesPerTrace] };
+            Traces = new ITrace[traces];
+            for (int i = 0; i < traces; i++)
+                Traces[i] = trace;
+        }
     }
 
 }
