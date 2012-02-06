@@ -38,12 +38,12 @@ namespace Unplugged.Segy
                 bitmap.Save(path);
         }
 
-        public Bitmap GetBitmap(ISegyFile segyFile)
+        public virtual Bitmap GetBitmap(ISegyFile segyFile)
         {
             return GetBitmap(segyFile.Traces);
         }
 
-        public Bitmap GetBitmap(IEnumerable<ITrace> traces)
+        public virtual Bitmap GetBitmap(IEnumerable<ITrace> traces)
         {
             dynamic range = FindRange(traces);
             return GetBitmap(traces, range);
