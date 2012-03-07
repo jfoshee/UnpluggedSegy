@@ -12,11 +12,13 @@ namespace Unplugged.Segy
     /// </summary>
     public class SegyReader
     {
+        public ISegyOptions Options { get; set; }
         public int InlineNumberLocation { get; set; }
         public int CrosslineNumberLocation { get; set; }
 
         public SegyReader()
         {
+            Options = new SegyOptions();
             InlineNumberLocation = 189;
             CrosslineNumberLocation = 193;
         }
@@ -103,11 +105,12 @@ namespace Unplugged.Segy
         /// </summary>
         public virtual string ReadTextHeader(BinaryReader reader)
         {
-            var bytes = reader.ReadBytes(_textHeaderSize);
-            string text = (bytes[0] == 'C') ?
+            var textHeaderLength = Options.TextHeaderColumnCount * Options.TextHeaderRowCount;
+            var bytes = reader.ReadBytes(textHeaderLength);
+            string text = (bytes[0] == 'C') || Options.IsEbcdic == false ?
                 ASCIIEncoding.Default.GetString(bytes) :
                 IbmConverter.ToString(bytes);
-            return InsertNewLines(text);
+            return Options.TextHeaderInsertNewLines ? InsertNewLines(text) : text;
         }
 
         #endregion
@@ -192,20 +195,19 @@ namespace Unplugged.Segy
 
         #region Behind the Scenes
 
-        private const int _textColumns = 80;
-        private const int _textRows = 40;
-        private const int _textHeaderSize = _textRows * _textColumns;
         private const int _binaryHeaderSize = 400;
         private const int _traceHeaderSize = 240;
         private const int _sampleFormatIndex = 24;
         private const int _sampleCountIndex = 114;
 
-        private static string InsertNewLines(string text)
+        private string InsertNewLines(string text)
         {
-            var result = new StringBuilder(text.Length + _textRows);
-            for (int i = 0; i < 1 + text.Length / _textColumns; i++)
+            var rows = Options.TextHeaderRowCount;
+            var cols = Options.TextHeaderColumnCount;
+            var result = new StringBuilder(text.Length + rows);
+            for (int i = 0; i < 1 + text.Length / cols; i++)
             {
-                var line = new string(text.Skip(_textColumns * i).Take(_textColumns).ToArray());
+                var line = new string(text.Skip(cols * i).Take(cols).ToArray());
                 result.AppendLine(line);
             }
             return result.ToString();

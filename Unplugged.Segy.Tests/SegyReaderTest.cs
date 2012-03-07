@@ -16,6 +16,16 @@ namespace Unplugged.Segy.Tests
         #region Loading Options
 
         [TestMethod]
+        public void ShouldHaveDefaultOptions()
+        {
+            // Arrange
+            ISegyOptions options = Subject.Options;
+
+            // Assert
+            Assert.IsInstanceOfType(options, typeof(SegyOptions));
+        }
+
+        [TestMethod]
         public void InlineNumberLocation()
         {
             // Arrange
@@ -124,6 +134,37 @@ namespace Unplugged.Segy.Tests
             // Assert
             StringAssert.StartsWith(header, expected);
             Assert.AreEqual(2, SplitLines(header).Count(), "Should split lines for ascii header");
+        }
+
+        [TestMethod]
+        public void ShouldObserveOptionsForTextHeader()
+        {
+            // Arrange
+            Subject.Options = new SegyOptions { TextHeaderColumnCount = 3, TextHeaderRowCount = 7, IsEbcdic = false };
+            var text = new string('e', 21) + "n";
+            File.WriteAllText(TestPath(), text);
+
+            // Act
+            var result = Subject.ReadTextHeader(TestPath());
+
+            // Assert
+            StringAssert.StartsWith(result, "eee" + Environment.NewLine);
+            CollectionAssert.DoesNotContain(result.ToCharArray(), 'n');
+        }
+
+        [TestMethod]
+        public void ShouldObserveNewLinesOption()
+        {
+            // Arrange
+            Subject.Options = new SegyOptions { TextHeaderInsertNewLines = false };
+            var expected = new string('x', 3200);
+            File.WriteAllBytes(TestPath(), ConvertToEbcdic(expected));
+
+            // Act
+            var actual = Subject.ReadTextHeader(TestPath());
+
+            // Assert
+            Assert.AreEqual(expected, actual);
         }
 
         #endregion
