@@ -20,17 +20,31 @@ namespace Unplugged.Segy
 
         #region From the Top: Methods that start reading from the beginning of the file
 
+        /// <summary>
+        /// Given a file path, reads entire SEGY file into memory
+        /// </summary>
         public virtual ISegyFile Read(string path)
         {
             using (var stream = File.OpenRead(path))
                 return Read(stream);
         }
 
+        /// <summary>
+        /// Given stream, reads entire SEGY file into memory.
+        /// Assumes the stream is at the start of the file.
+        /// </summary>
         public virtual ISegyFile Read(Stream stream)
         {
             return Read(stream, int.MaxValue);
         }
 
+        /// <summary>
+        /// Given stream and traceCount, reads the requested number
+        /// of traces into memory. The given traceCount may exceed
+        /// the number of traces in the file; 
+        /// in that case all the traces in the file are read.
+        /// Assumes the stream is at the start of the file.
+        /// </summary>
         public virtual ISegyFile Read(Stream stream, int traceCount)
         {
             using (var reader = new BinaryReader(stream))
@@ -48,6 +62,10 @@ namespace Unplugged.Segy
             }
         }
 
+        /// <summary>
+        /// Given a BinaryReader, reads the SEGY File Header into memory.
+        /// Asummes the BinaryReader is at the start of the file.
+        /// </summary>
         public virtual IFileHeader ReadFileHeader(BinaryReader reader)
         {
             var text = ReadTextHeader(reader);
@@ -56,18 +74,30 @@ namespace Unplugged.Segy
             return header;
         }
 
+        /// <summary>
+        /// Given a file path reads the text header from the beginning
+        /// of the SEGY file.
+        /// </summary>
         public virtual string ReadTextHeader(string path)
         {
             using (var stream = File.OpenRead(path))
                 return ReadTextHeader(stream);
         }
 
+        /// <summary>
+        /// Given a stream reads the text header.
+        /// Assumes the stream is at the start of the file.
+        /// </summary>
         public virtual string ReadTextHeader(Stream stream)
         {
             using (var reader = new BinaryReader(stream))
                 return ReadTextHeader(reader);
         }
 
+        /// <summary>
+        /// Given a BinaryReader reads the text header.
+        /// Assumes the BinaryReader is at the start of the file.
+        /// </summary>
         public virtual string ReadTextHeader(BinaryReader reader)
         {
             var bytes = reader.ReadBytes(_textHeaderSize);
