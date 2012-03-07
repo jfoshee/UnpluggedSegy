@@ -7,6 +7,9 @@ using Unplugged.IbmBits;
 
 namespace Unplugged.Segy
 {
+    /// <summary>
+    /// Responsible for reading SEGY files given a path or a Stream.
+    /// </summary>
     public class SegyReader
     {
         public int InlineNumberLocation { get; set; }
@@ -111,6 +114,10 @@ namespace Unplugged.Segy
 
         #region Already in progress: Methods that start reading from the current location in the stream
 
+        /// <summary>
+        /// Given a BinaryReader, reads the binary header.
+        /// Assumes that the binary header is the next item to be read.
+        /// </summary>
         public virtual IFileHeader ReadBinaryHeader(BinaryReader reader)
         {
             var binaryHeader = reader.ReadBytes(_binaryHeaderSize);
@@ -123,6 +130,10 @@ namespace Unplugged.Segy
             return new FileHeader { SampleFormat = sampleFormat, IsLittleEndian = isLittleEndian };
         }
 
+        /// <summary>
+        /// Given a BinaryReader, reads the trace header.
+        /// Assumes that the trace header is the next item to be read.
+        /// </summary>
         public virtual ITraceHeader ReadTraceHeader(BinaryReader reader)
         {
             var traceHeader = new TraceHeader();
@@ -138,6 +149,10 @@ namespace Unplugged.Segy
             return traceHeader;
         }
 
+        /// <summary>
+        /// Reads the trace (header and sample values).
+        /// Assumes that the trace header is the next item to be read.
+        /// </summary>
         public virtual ITrace ReadTrace(BinaryReader reader, FormatCode sampleFormat)
         {
             var header = ReadTraceHeader(reader);
@@ -147,6 +162,9 @@ namespace Unplugged.Segy
             return new Trace { Header = header, Values = values };
         }
 
+        /// <summary>
+        /// Assuming the trace header has been read, reads the array of sample values
+        /// </summary>
         public virtual IList<float> ReadTrace(BinaryReader reader, FormatCode sampleFormat, int sampleCount)
         {
             var trace = new float[sampleCount];

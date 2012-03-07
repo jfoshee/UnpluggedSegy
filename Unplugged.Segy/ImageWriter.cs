@@ -5,8 +5,15 @@ using System.Linq;
 
 namespace Unplugged.Segy
 {
+    /// <summary>
+    /// Responsible for converting SEGY data to a bitmap image
+    /// </summary>
     public class ImageWriter
     {
+        /// <summary>
+        /// When true, sample values that are exactly 0.0f will have their alpha component set to 0.
+        /// Defaults to true.
+        /// </summary>
         public bool SetNullValuesToTransparent { get; set; }
 
         public ImageWriter()
@@ -14,6 +21,14 @@ namespace Unplugged.Segy
             SetNullValuesToTransparent = true;
         }
 
+        /// <summary>
+        /// Writes one or more bitmap for the given SEGY file. 
+        /// If the SEGY has multiple inline numbers, it is assumed to be 3D, and one bitmap is written for each inline.
+        /// </summary>
+        /// <param name="path">
+        /// The destination path for the image. 
+        /// If multiple images are written, each inline number is added parenthetically to the file name.
+        /// </param>
         public virtual void Write(ISegyFile segyFile, string path)
         {
             if (segyFile.Traces == null)
@@ -32,17 +47,32 @@ namespace Unplugged.Segy
             }
         }
 
+        /// <summary>
+        /// Writes a bitmap image with the given traces to the given destination path.
+        /// </summary>
         public virtual void Write(IEnumerable<ITrace> traces, string path)
         {
             using (var bitmap = GetBitmap(traces))
                 bitmap.Save(path);
         }
 
+        /// <summary>
+        /// Returns a single bitmap image composed from all the trace in the SEGY file.
+        /// The caller is responsible for disposing of the bitmap. This is highy recommended
+        /// so that GDI resources will be cleaned up.
+        /// </summary>
+        /// <returns>A disposable bitmap</returns>
         public virtual Bitmap GetBitmap(ISegyFile segyFile)
         {
             return GetBitmap(segyFile.Traces);
         }
 
+        /// <summary>
+        /// Returns a single bitmap image composed from the given traces.
+        /// The caller is responsible for disposing of the bitmap. This is highy recommended
+        /// so that GDI resources will be cleaned up.
+        /// </summary>
+        /// <returns>A disposable bitmap</returns>
         public virtual Bitmap GetBitmap(IEnumerable<ITrace> traces)
         {
             dynamic range = FindRange(traces);
