@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="ImageWriterTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SegyOptionsTest.cs" />
     <Compile Include="SegyReaderTest.cs" />
   </ItemGroup>
   <ItemGroup>
