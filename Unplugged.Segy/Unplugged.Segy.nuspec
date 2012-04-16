@@ -6,7 +6,7 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
-    <projectUrl>https://github.com/jfoshee/UnpluggedSegy</projectUrl>
+    <projectUrl>http://segy.net</projectUrl>
     <iconUrl>https://github.com/jfoshee/UnpluggedSegy/raw/ce8bb8c0182852423afdd1fa254f5de13efbe5c3/Unplugged.Segy/icon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
