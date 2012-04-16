@@ -58,7 +58,7 @@ namespace Unplugged.Segy
                 var traces = new List<ITrace>();
                 for (int i = 0; i < traceCount; i++)
                 {
-                    var trace = ReadTrace(reader, fileHeader.SampleFormat);
+                    var trace = ReadTrace(reader, fileHeader.SampleFormat, fileHeader.IsLittleEndian);
                     if (trace == null)
                         break;
                     traces.Add(trace);
@@ -136,19 +136,30 @@ namespace Unplugged.Segy
         /// <summary>
         /// Given a BinaryReader, reads the trace header.
         /// Assumes that the trace header is the next item to be read.
+        /// Assumes that the byte order is Big Endian.
         /// </summary>
         public virtual ITraceHeader ReadTraceHeader(BinaryReader reader)
+        {
+            return ReadTraceHeader(reader, false);
+        }
+
+        /// <summary>
+        /// Given a BinaryReader, reads the trace header.
+        /// Assumes that the trace header is the next item to be read.
+        /// </summary>
+        public virtual ITraceHeader ReadTraceHeader(BinaryReader reader, bool isLittleEndian)
         {
             var traceHeader = new TraceHeader();
             var headerBytes = reader.ReadBytes(_traceHeaderSize);
             if (headerBytes.Length < _traceHeaderSize)
                 return null;
             if (headerBytes.Length >= CrosslineNumberLocation + 3)
-                traceHeader.CrosslineNumber = traceHeader.TraceNumber = IbmBits.IbmConverter.ToInt32(headerBytes, CrosslineNumberLocation - 1);
+                traceHeader.CrosslineNumber = traceHeader.TraceNumber =
+                    ToInt32(headerBytes, CrosslineNumberLocation - 1, isLittleEndian);
             if (headerBytes.Length >= InlineNumberLocation + 3)
-                traceHeader.InlineNumber = IbmConverter.ToInt32(headerBytes, InlineNumberLocation - 1);
+                traceHeader.InlineNumber = ToInt32(headerBytes, InlineNumberLocation - 1, isLittleEndian);
             if (headerBytes.Length >= _sampleCountIndex + 2)
-                traceHeader.SampleCount = IbmConverter.ToInt16(headerBytes, _sampleCountIndex);
+                traceHeader.SampleCount = ToInt16(headerBytes, _sampleCountIndex, isLittleEndian);
             return traceHeader;
         }
 
@@ -156,38 +167,45 @@ namespace Unplugged.Segy
         /// Reads the trace (header and sample values).
         /// Assumes that the trace header is the next item to be read.
         /// </summary>
-        public virtual ITrace ReadTrace(BinaryReader reader, FormatCode sampleFormat)
+        public virtual ITrace ReadTrace(BinaryReader reader, FormatCode sampleFormat, bool isLittleEndian)
         {
-            var header = ReadTraceHeader(reader);
+            var header = ReadTraceHeader(reader, isLittleEndian);
             if (header == null)
                 return null;
-            var values = ReadTrace(reader, sampleFormat, header.SampleCount);
+            var values = ReadTrace(reader, sampleFormat, header.SampleCount, isLittleEndian);
             return new Trace { Header = header, Values = values };
         }
 
         /// <summary>
         /// Assuming the trace header has been read, reads the array of sample values
         /// </summary>
-        public virtual IList<float> ReadTrace(BinaryReader reader, FormatCode sampleFormat, int sampleCount)
+        public virtual IList<float> ReadTrace(BinaryReader reader, FormatCode sampleFormat, int sampleCount, bool isLittleEndian)
         {
             var trace = new float[sampleCount];
-            for (int i = 0; i < sampleCount; i++)
+            try
             {
-                switch (sampleFormat)
+                for (int i = 0; i < sampleCount; i++)
                 {
-                    case FormatCode.IbmFloatingPoint4:
-                        trace[i] = reader.ReadSingleIbm();
-                        break;
-                    case FormatCode.IeeeFloatingPoint4:
-                        trace[i] = reader.ReadSingle();
-                        break;
-                    case FormatCode.TwosComplementInteger2:
-                        trace[i] = reader.ReadInt16BigEndian();
-                        break;
-                    default:
-                        throw new NotSupportedException("Unsupported sample format: " + sampleFormat.ToString());
+                    switch (sampleFormat)
+                    {
+                        case FormatCode.IbmFloatingPoint4:
+                            trace[i] = reader.ReadSingleIbm();
+                            break;
+                        case FormatCode.IeeeFloatingPoint4:
+                            trace[i] = reader.ReadSingle();
+                            break;
+                        case FormatCode.TwosComplementInteger2:
+                            trace[i] = isLittleEndian ?
+                                reader.ReadInt16() :
+                                reader.ReadInt16BigEndian();
+                            break;
+                        default:
+                            throw new NotSupportedException(
+                                String.Format("Unsupported sample format: {0}. Send an email to dev@segy.net to request support for this format.", sampleFormat));
+                    }
                 }
             }
+            catch (EndOfStreamException) { /* Encountered end of stream before end of trace. Leave remaining trace samples as zero */ }
             return trace;
         }
 
@@ -211,6 +229,20 @@ namespace Unplugged.Segy
                 result.AppendLine(line);
             }
             return result.ToString();
+        }
+
+        private static int ToInt16(byte[] bytes, int index, bool isLittleEndian)
+        {
+            return isLittleEndian ?
+                BitConverter.ToInt16(bytes, index) :
+                IbmConverter.ToInt16(bytes, index);
+        }
+
+        private static int ToInt32(byte[] bytes, int index, bool isLittleEndian)
+        {
+            return isLittleEndian ?
+                BitConverter.ToInt32(bytes, index) :
+                IbmConverter.ToInt32(bytes, index);
         }
 
         #endregion

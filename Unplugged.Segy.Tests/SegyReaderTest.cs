@@ -335,7 +335,7 @@ namespace Unplugged.Segy.Tests
             IList<float> result = null;
 
             // Act
-            AssertBytesConsumed(r => result = Subject.ReadTrace(r, sampleFormat, sampleCount), expected);
+            AssertBytesConsumed(r => result = Subject.ReadTrace(r, sampleFormat, sampleCount, false), expected);
 
             // Assert
             Assert.AreEqual(sampleCount, result.Count);
@@ -346,7 +346,7 @@ namespace Unplugged.Segy.Tests
         {
             var expected = new float[] { 10, 20, 30 };
             var bytes = BitConverter.GetBytes(10f).Concat(BitConverter.GetBytes(20f)).Concat(BitConverter.GetBytes(30f)).ToArray();
-            VerifyReadsSamplesOfGivenFormat(FormatCode.IeeeFloatingPoint4, expected, bytes);
+            VerifyReadsSamplesOfGivenFormat(FormatCode.IeeeFloatingPoint4, expected, bytes, false);
         }
 
         [TestMethod]
@@ -355,7 +355,7 @@ namespace Unplugged.Segy.Tests
             // TODO: This test would be clearer if I had code to convert TO IBM Float
             var bytes = BitConverter.GetBytes(96795456).Concat(BitConverter.GetBytes(2136281153)).Concat(BitConverter.GetBytes(1025579328)).ToArray();
             var expected = new float[] { 0.9834598f, 1.020873f, 0.09816343f };
-            VerifyReadsSamplesOfGivenFormat(FormatCode.IbmFloatingPoint4, expected, bytes);
+            VerifyReadsSamplesOfGivenFormat(FormatCode.IbmFloatingPoint4, expected, bytes, false);
         }
 
         [TestMethod]
@@ -363,10 +363,21 @@ namespace Unplugged.Segy.Tests
         {
             var expected = new float[] { -777, 888 };
             var bytes = BitConverter.GetBytes((Int16)(-777)).Reverse().Concat(BitConverter.GetBytes((Int16)888).Reverse()).ToArray();
-            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger2, expected, bytes);
+            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger2, expected, bytes, false);
         }
 
-        private void VerifyReadsSamplesOfGivenFormat(FormatCode sampleFormat, float[] expected, byte[] bytes)
+        [TestMethod]
+        public void ShouldHandleEndOfStreamBeforeEndOfTrace()
+        {
+            // Arrange
+            var bytes = new byte[] { 1, 0, 2, 0 };
+            var expected = new float[] { 1, 2, 0 };
+
+            // Act
+            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger2, expected, bytes, true);
+        }
+
+        private void VerifyReadsSamplesOfGivenFormat(FormatCode sampleFormat, float[] expected, byte[] bytes, bool isLittleEndian)
         {
             // Arrange
             var sampleCount = expected.Length;
@@ -375,7 +386,7 @@ namespace Unplugged.Segy.Tests
             // Act
             using (var stream = new MemoryStream(bytes))
             using (var reader = new BinaryReader(stream))
-                result = Subject.ReadTrace(reader, sampleFormat, sampleCount);
+                result = Subject.ReadTrace(reader, sampleFormat, sampleCount, isLittleEndian);
 
             // Assert
             for (int i = 0; i < sampleCount; i++)
@@ -396,7 +407,7 @@ namespace Unplugged.Segy.Tests
             // Act
             using (var stream = new MemoryStream(bytes))
             using (var reader = new BinaryReader(stream))
-                trace = Subject.ReadTrace(reader, sampleFormat);
+                trace = Subject.ReadTrace(reader, sampleFormat, false);
 
             // Assert
             Assert.AreEqual(expected.Length, trace.Header.SampleCount);
@@ -512,6 +523,45 @@ namespace Unplugged.Segy.Tests
             foreach (var method in readMethods)
                 Assert.IsTrue(method.IsVirtual);
         }
+
+        #endregion
+
+        #region Reading Little Endian
+
+        [TestMethod]
+        public void ShouldReadLittleEndianTraceHeader()
+        {
+            // Arrange
+            var bytes = new byte[240];
+            bytes[114] = 1; // 1
+            bytes[115] = 2; // 512
+            Subject.InlineNumberLocation = 101;
+            bytes[100] = 1; // 1
+            bytes[103] = 2; // 33,554,432
+            Subject.CrosslineNumberLocation = 201;
+            bytes[200] = 2; // 2
+            bytes[203] = 2; // 33,554,432
+            ITraceHeader traceHeader = null;
+
+            // Act
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new BinaryReader(stream))
+                traceHeader = Subject.ReadTraceHeader(reader, true);
+
+            // Assert
+            Assert.AreEqual(513, traceHeader.SampleCount);
+            Assert.AreEqual(33554433, traceHeader.InlineNumber);
+            Assert.AreEqual(33554434, traceHeader.CrosslineNumber);
+            Assert.AreEqual(33554434, traceHeader.TraceNumber);
+        }
+
+        [TestMethod]
+        public void ShouldReadLittleEndianInt16()
+        {
+            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger2, new float[] { 513 }, new byte[] { 1, 2 }, true);
+        }
+
+        // TODO: LittleEndianIntegrationTest
 
         #endregion
 
