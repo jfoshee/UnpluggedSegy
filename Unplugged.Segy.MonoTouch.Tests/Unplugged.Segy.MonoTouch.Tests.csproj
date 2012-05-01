@@ -84,4 +84,12 @@
       <Name>Unplugged.Segy.MonoTouch</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Examples\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\Unplugged.Segy.Tests\Examples\lineE.sgy">
+      <Link>Examples\lineE.sgy</Link>
+    </Content>
+  </ItemGroup>
 </Project>

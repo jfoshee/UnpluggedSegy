@@ -43,4 +43,13 @@
   <ItemGroup>
     <Compile Include="SegyReading.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Examples\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Unplugged.Segy.Tests\Examples\lineE.sgy">
+      <Link>Examples\lineE.sgy</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

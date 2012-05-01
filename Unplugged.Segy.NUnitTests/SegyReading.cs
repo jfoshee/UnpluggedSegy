@@ -10,7 +10,7 @@ namespace Unplugged.Segy.MonoTouch.Tests
 		public void ShouldReadSegyFile()
 		{
 			var subject = new SegyReader();
-			var segy = subject.Read(@"/Users/Jacob/Documents/GitHub/UnpluggedSegy/Unplugged.Segy.Tests/Examples/lineE.sgy");
+			var segy = subject.Read(@"./Examples/lineE.sgy");
 			Console.WriteLine(segy.Header.Text);
 		}
 		
