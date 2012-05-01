@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4FE7CCB7-A96F-41E7-849E-C6236043BEEF}</ProjectGuid>
+    <ProjectTypeGuids>{6BC8ED88-2882-458C-8E55-DFD12B67127B};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Unplugged.Segy.MonoTouch</RootNamespace>
+    <AssemblyName>Unplugged.Segy.MonoTouch</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="monotouch" />
+    <Reference Include="Unplugged.IbmBits.MonoTouch">
+      <HintPath>..\packages\Unplugged.IbmBits.0.0.0.3\lib\monotouch\Unplugged.IbmBits.MonoTouch.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Unplugged.Segy\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Unplugged.Segy\FileHeader.cs">
+      <Link>Unplugged.Segy\FileHeader.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\FormatCode.cs">
+      <Link>Unplugged.Segy\FormatCode.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\IFileHeader.cs">
+      <Link>Unplugged.Segy\IFileHeader.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\ISegyFile.cs">
+      <Link>Unplugged.Segy\ISegyFile.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\ISegyOptions.cs">
+      <Link>Unplugged.Segy\ISegyOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\ITrace.cs">
+      <Link>Unplugged.Segy\ITrace.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\ITraceHeader.cs">
+      <Link>Unplugged.Segy\ITraceHeader.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\SegyFile.cs">
+      <Link>Unplugged.Segy\SegyFile.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\SegyOptions.cs">
+      <Link>Unplugged.Segy\SegyOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\SegyReader.cs">
+      <Link>Unplugged.Segy\SegyReader.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\Trace.cs">
+      <Link>Unplugged.Segy\Trace.cs</Link>
+    </Compile>
+    <Compile Include="..\Unplugged.Segy\TraceHeader.cs">
+      <Link>Unplugged.Segy\TraceHeader.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

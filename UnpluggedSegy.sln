@@ -14,23 +14,58 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unplugged.Segy", "Unplugged.Segy\Unplugged.Segy.csproj", "{096016A3-C38E-41C0-9853-4C4AF2DF8782}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unplugged.Segy.MonoTouch", "Unplugged.Segy.MonoTouch\Unplugged.Segy.MonoTouch.csproj", "{4FE7CCB7-A96F-41E7-849E-C6236043BEEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unplugged.Segy.NUnitTests", "Unplugged.Segy.NUnitTests\Unplugged.Segy.NUnitTests.csproj", "{5FB4FF59-8350-4596-B3D0-0EF11FA6BCD4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unplugged.Segy.MonoTouch.Tests", "Unplugged.Segy.MonoTouch.Tests\Unplugged.Segy.MonoTouch.Tests.csproj", "{884678D1-863C-45C1-BAB1-85BF75E2B3A5}"
+EndProject
 Global
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = UnpluggedSegy.vsmdi
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Debug|iPhoneSimulator = Debug|iPhoneSimulator
+		Release|iPhoneSimulator = Release|iPhoneSimulator
+		Debug|iPhone = Debug|iPhone
+		Release|iPhone = Release|iPhone
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7BE2D039-A482-4792-BBB8-90F68C5B0F57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7BE2D039-A482-4792-BBB8-90F68C5B0F57}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7BE2D039-A482-4792-BBB8-90F68C5B0F57}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7BE2D039-A482-4792-BBB8-90F68C5B0F57}.Release|Any CPU.Build.0 = Release|Any CPU
 		{096016A3-C38E-41C0-9853-4C4AF2DF8782}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{096016A3-C38E-41C0-9853-4C4AF2DF8782}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{096016A3-C38E-41C0-9853-4C4AF2DF8782}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{096016A3-C38E-41C0-9853-4C4AF2DF8782}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FE7CCB7-A96F-41E7-849E-C6236043BEEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FE7CCB7-A96F-41E7-849E-C6236043BEEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FE7CCB7-A96F-41E7-849E-C6236043BEEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FE7CCB7-A96F-41E7-849E-C6236043BEEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FB4FF59-8350-4596-B3D0-0EF11FA6BCD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FB4FF59-8350-4596-B3D0-0EF11FA6BCD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FB4FF59-8350-4596-B3D0-0EF11FA6BCD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FB4FF59-8350-4596-B3D0-0EF11FA6BCD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BE2D039-A482-4792-BBB8-90F68C5B0F57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BE2D039-A482-4792-BBB8-90F68C5B0F57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BE2D039-A482-4792-BBB8-90F68C5B0F57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BE2D039-A482-4792-BBB8-90F68C5B0F57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Debug|Any CPU.ActiveCfg = Debug|iPhoneSimulator
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Debug|Any CPU.Build.0 = Debug|iPhoneSimulator
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Debug|iPhone.ActiveCfg = Debug|iPhone
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Debug|iPhone.Build.0 = Debug|iPhone
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Debug|iPhoneSimulator.ActiveCfg = Debug|iPhoneSimulator
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Debug|iPhoneSimulator.Build.0 = Debug|iPhoneSimulator
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Release|Any CPU.ActiveCfg = Release|iPhoneSimulator
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Release|Any CPU.Build.0 = Release|iPhoneSimulator
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Release|iPhone.ActiveCfg = Release|iPhone
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Release|iPhone.Build.0 = Release|iPhone
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Release|iPhoneSimulator.ActiveCfg = Release|iPhoneSimulator
+		{884678D1-863C-45C1-BAB1-85BF75E2B3A5}.Release|iPhoneSimulator.Build.0 = Release|iPhoneSimulator
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Unplugged.Segy.MonoTouch.Tests\Unplugged.Segy.MonoTouch.Tests.csproj
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = UnpluggedSegy.vsmdi
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
