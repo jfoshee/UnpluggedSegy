@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using TestDrivenDesign;
@@ -168,6 +169,23 @@ namespace Unplugged.Segy.Tests
         }
 
         [TestMethod]
+        public void ShouldCreateBlackImageWhenRangeIsZero()
+        {
+            // Arrange
+            var path = TestPath() + ".png";
+            Subject.SetNullValuesToTransparent = false;
+
+            // Act
+            Subject.Write(new MockSegyFile(10, 10), path);
+
+            // Assert
+            TestContext.AddResultFile(path);
+            Bitmap image = new Bitmap(path);
+            Assert.AreEqual(0, image.GetPixel(0, 0).R);
+            Assert.AreEqual(255, image.GetPixel(0, 0).A);
+        }
+
+        [TestMethod]
         public void ShouldCreateImageWithGivenTraces()
         {
             // Arrange
@@ -208,19 +226,20 @@ namespace Unplugged.Segy.Tests
 
             // Assert
             Assert.AreEqual(2 * 3 * 4, bytes.Length);
+            Assert.AreEqual(127, bytes[0], "r");
+            Assert.AreEqual(255, bytes[3], "a");
             using (var bmp = Subject.GetBitmap(traces))
             {
                 var bmpData = bmp.LockBits(Rectangle.FromLTRB(0, 0, 2, 3), ImageLockMode.ReadOnly, bmp.PixelFormat);
                 int length = bmpData.Stride * bmp.Height;
-                byte[] rgbValues = new byte[length];
-                System.Runtime.InteropServices.Marshal.Copy(bmpData.Scan0, rgbValues, 0, length);
-                CollectionAssert.AreEqual(rgbValues, bytes);
+                byte[] expected = new byte[length];
+                Marshal.Copy(bmpData.Scan0, expected, 0, length);
+                CollectionAssert.AreEqual(expected, bytes);
             }
         }
 
         private static IEnumerable<ITrace> MockTraces2x3()
         {
-            var values = new float[] { 1, 2, 3 };
             var trace1 = new MockTrace { Values = new float[] { 20, 10, 25 } };
             var trace2 = new MockTrace { Values = new float[] { 15, 30, 25 } };
             return new ITrace[] { trace1, trace2 };
