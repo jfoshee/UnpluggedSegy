@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using TestDrivenDesign;
@@ -194,6 +195,27 @@ namespace Unplugged.Segy.Tests
 
             // Assert
             VerifyBitmapFromMockTraces2x3(image);
+        }
+
+        [TestMethod]
+        public void ShouldGetFourComponentByteArray()
+        {
+            // Arrange
+            IEnumerable<ITrace> traces = MockTraces2x3();
+
+            // Act
+            byte[] bytes = Subject.GetRaw32bppRgba(traces);
+
+            // Assert
+            Assert.AreEqual(2 * 3 * 4, bytes.Length);
+            using (var bmp = Subject.GetBitmap(traces))
+            {
+                var bmpData = bmp.LockBits(Rectangle.FromLTRB(0, 0, 2, 3), ImageLockMode.ReadOnly, bmp.PixelFormat);
+                int length = bmpData.Stride * bmp.Height;
+                byte[] rgbValues = new byte[length];
+                System.Runtime.InteropServices.Marshal.Copy(bmpData.Scan0, rgbValues, 0, length);
+                CollectionAssert.AreEqual(rgbValues, bytes);
+            }
         }
 
         private static IEnumerable<ITrace> MockTraces2x3()

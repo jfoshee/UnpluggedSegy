@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Unplugged.Segy
 {
@@ -77,6 +79,18 @@ namespace Unplugged.Segy
         {
             dynamic range = FindRange(traces);
             return GetBitmap(traces, range);
+            //var bytes = GetRaw32bppRgba(traces);
+
+            //var traceList = traces.ToList();
+            //int width = traceList.Count;
+            //int height = traceList.First().Values.Count;
+
+            //return GetBitmap(bytes, width, height);
+        }
+
+        public virtual byte[] GetRaw32bppRgba(IEnumerable<ITrace> traces)
+        {
+            return GetRawBytesAndSize(traces).Bytes;
         }
 
         #region Behind the Scenes
@@ -101,31 +115,87 @@ namespace Unplugged.Segy
 
         private Bitmap GetBitmap(IEnumerable<ITrace> traces, dynamic range)
         {
-            var width = traces.Count();
-            var height = traces.First().Values.Count;
-            var valueRange = range.Max - range.Min;
-            var bitmap = new Bitmap(width, height);
-            if (valueRange != 0)
-                AssignPixelColors(traces.ToList(), width, height, bitmap, range.Min, valueRange);
+            dynamic raw = GetRawBytesAndSize(traces, range);
+            return GetBitmap(raw.Bytes, raw.Width, raw.Height);
+            //var bitmap = new Bitmap(width, height);
+            //if (valueRange != 0)
+            //    AssignPixelColors(traces.ToList(), width, height, bitmap, range.Min, valueRange);
+            //return bitmap;
+        }
+
+        private dynamic GetRawBytesAndSize(IEnumerable<ITrace> traces)
+        {
+            dynamic range = FindRange(traces);
+            return GetRawBytesAndSize(traces, range);
+        }
+
+        private dynamic GetRawBytesAndSize(IEnumerable<ITrace> traces, dynamic range)
+        {
+            var traceList = traces.ToList();
+            int width = traceList.Count;
+            int height = traceList.First().Values.Count;
+            int components = 4;
+            var length = components * width * height;
+            var bytes = new byte[length];
+
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < height; j++)
+                {
+                    var index = components * (j * width + i);
+                    SetColor(bytes, index, range.Min, range.Delta, traceList[i].Values[j]);
+                }
+            return new { Bytes = bytes, Width = width, Height = height };
+        }
+
+        private static Bitmap GetBitmap(byte[] bytes, int width, int height)
+        {
+            var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+            var bitmapData = bitmap.LockBits(Rectangle.FromLTRB(0, 0, width, height), ImageLockMode.WriteOnly, bitmap.PixelFormat);
+            Marshal.Copy(bytes, 0, bitmapData.Scan0, bytes.Length);
+            bitmap.UnlockBits(bitmapData);
             return bitmap;
         }
 
-        private void AssignPixelColors(IList<ITrace> traces, int width, int height, Bitmap bitmap, float valueMin, float valueRange)
-        {
-            for (int i = 0; i < width; i++)
-                for (int j = 0; j < height; j++)
-                    SetPixel(traces, bitmap, valueMin, valueRange, i, j);
-        }
 
-        private void SetPixel(IList<ITrace> traces, Bitmap bitmap, float valueMin, float valueRange, int i, int j)
+        //private void AssignPixelColors(IList<ITrace> traces, int width, int height, Bitmap bitmap, float valueMin, float valueRange)
+        //{
+        //    for (int i = 0; i < width; i++)
+        //        for (int j = 0; j < height; j++)
+        //            SetPixel(traces, bitmap, valueMin, valueRange, i, j);
+        //}
+
+        //private void SetPixel(IList<ITrace> traces, Bitmap bitmap, float valueMin, float valueRange, int i, int j)
+        //{
+        //    var value = traces[i].Values[j];
+        //    var color = GetColor(valueMin, valueRange, value);
+        //    bitmap.SetPixel(i, j, color);
+        //}
+
+        //private Color GetColor(float valueMin, float valueRange, float value)
+        //{
+        //    var alpha = byte.MaxValue;
+        //    if (SetNullValuesToTransparent && value == 0.0f) // Exactly zero is assumed to be a null sample
+        //        alpha = byte.MinValue;
+        //    var byteValue = GetByteValue(valueMin, valueRange, value);
+        //    var color = Color.FromArgb(alpha, byteValue, byteValue, byteValue);
+        //    return color;
+        //}
+
+        private void SetColor(byte[] bytes, int offset, float valueMin, float valueRange, float value)
         {
-            var value = traces[i].Values[j];
             var alpha = byte.MaxValue;
             if (SetNullValuesToTransparent && value == 0.0f) // Exactly zero is assumed to be a null sample
                 alpha = byte.MinValue;
-            int byteValue = (int)(byte.MaxValue * (value - valueMin) / valueRange);
-            var color = Color.FromArgb(alpha, byteValue, byteValue, byteValue);
-            bitmap.SetPixel(i, j, color);
+            var byteValue = GetByteValue(valueMin, valueRange, value);
+            bytes[offset + 0] = byteValue;
+            bytes[offset + 1] = byteValue;
+            bytes[offset + 2] = byteValue;
+            bytes[offset + 3] = alpha;
+        }
+
+        private static byte GetByteValue(float valueMin, float valueRange, float value)
+        {
+            return (byte)(byte.MaxValue * (value - valueMin) / valueRange);
         }
 
         private static IEnumerable<int> GetInlineNumbers(ISegyFile segyFile)
@@ -149,7 +219,7 @@ namespace Unplugged.Segy
                     if (value < min) min = value;
                     if (value > max) max = value;
                 }
-            return new { Min = min, Max = max };
+            return new { Min = min, Max = max, Delta = max - min };
         }
 
         #endregion
