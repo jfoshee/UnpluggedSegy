@@ -15,6 +15,16 @@ namespace Unplugged.Segy.MonoTouch.Tests
 		}
 		
 		[Test]
+		public void ShouldGetImageBytes()
+		{
+			var reader = new SegyReader();
+			var segy = reader.Read(@"./Examples/lineE.sgy");
+			var imageWriter = new ImageWriter();
+			var bytes = imageWriter.GetRaw32bppRgba(segy.Traces);
+			Assert.That(bytes.Length == 4 * segy.Traces.Count * segy.Traces[0].Values.Count);
+		}
+		
+		[Test]
 		public void Canary()
 		{
 			Assert.That(true);

@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+#if !MONO_TOUCH
+using System.Drawing.Imaging;
+#endif
 
 namespace Unplugged.Segy
 {
@@ -22,7 +24,9 @@ namespace Unplugged.Segy
         {
             SetNullValuesToTransparent = true;
         }
-
+		
+#if !MONO_TOUCH
+		
         /// <summary>
         /// Writes one or more bitmap for the given SEGY file. 
         /// If the SEGY has multiple inline numbers, it is assumed to be 3D, and one bitmap is written for each inline.
@@ -48,7 +52,7 @@ namespace Unplugged.Segy
                 WriteBitmapPerInline(segyFile, path, inlineNumbers, range);
             }
         }
-
+		
         /// <summary>
         /// Writes a bitmap image with the given traces to the given destination path.
         /// </summary>
@@ -80,20 +84,35 @@ namespace Unplugged.Segy
             dynamic range = FindRange(traces);
             return GetBitmap(traces, range);
         }
-
+#endif
+		
         /// <summary>
         /// Returns a bitmap as a one-dimensional byte array. Pixels are layed out as R, G, B, A with one byte per channel.
         /// </summary>
         public virtual byte[] GetRaw32bppRgba(IEnumerable<ITrace> traces)
         {
-            dynamic range = FindRange(traces);
+            var range = FindRange(traces);
             return GetRawBytesAndSize(traces, range).Bytes;
         }
 
         #region Behind the Scenes
-
+		
+		private class ValueRange
+		{
+			public float Min { get; set; }
+			public float Max { get; set; }
+			public float Delta { get; set; }
+		}
+		
+		private class RawBitmap
+		{
+			public int Width { get; set; }
+			public int Height { get; set; }
+			public byte[] Bytes { get; set; }
+		}
+		
         // O(N)
-        private static object FindRange(IEnumerable<ITrace> traces)
+        private static ValueRange FindRange(IEnumerable<ITrace> traces)
         {
             var min = float.MaxValue;
             var max = float.MinValue;
@@ -103,11 +122,11 @@ namespace Unplugged.Segy
                     if (value < min) min = value;
                     if (value > max) max = value;
                 }
-            return new { Min = min, Max = max, Delta = max - min };
+            return new ValueRange { Min = min, Max = max, Delta = max - min };
         }
 
         // O(N)
-        private dynamic GetRawBytesAndSize(IEnumerable<ITrace> traces, dynamic range)
+        private RawBitmap GetRawBytesAndSize(IEnumerable<ITrace> traces, ValueRange range)
         {
             var traceList = traces.ToList();
             int width = traceList.Count;
@@ -121,10 +140,12 @@ namespace Unplugged.Segy
                     var index = components * (j * width + i);
                     SetColor(bytes, index, range.Min, range.Delta, traceList[i].Values[j]);
                 }
-            return new { Bytes = bytes, Width = width, Height = height };
+            return new RawBitmap { Bytes = bytes, Width = width, Height = height };
         }
-
-        private void WriteBitmapPerInline(ISegyFile segyFile, string path, IEnumerable<int> inlineNumbers, dynamic range)
+		
+#if !MONO_TOUCH
+		
+        private void WriteBitmapPerInline(ISegyFile segyFile, string path, IEnumerable<int> inlineNumbers, ValueRange range)
         {
             foreach (var inline in inlineNumbers)
             {
@@ -136,7 +157,7 @@ namespace Unplugged.Segy
             }
         }
 
-        private void WriteBitmapForTraces(IEnumerable<ITrace> traces, string path, dynamic range)
+        private void WriteBitmapForTraces(IEnumerable<ITrace> traces, string path, ValueRange range)
         {
             using (var bitmap = GetBitmap(traces, range))
                 bitmap.Save(path);
@@ -156,7 +177,9 @@ namespace Unplugged.Segy
             bitmap.UnlockBits(bitmapData);
             return bitmap;
         }
-
+		
+#endif
+		
         private void SetColor(byte[] bytes, int offset, float valueMin, float valueRange, float value)
         {
             var alpha = byte.MaxValue;
