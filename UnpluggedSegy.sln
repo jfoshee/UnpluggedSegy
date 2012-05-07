@@ -62,7 +62,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Unplugged.Segy.NUnitTests\Unplugged.Segy.NUnitTests.csproj
+		StartupItem = Unplugged.Segy.MonoTouch.Tests\Unplugged.Segy.MonoTouch.Tests.csproj
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = UnpluggedSegy.vsmdi

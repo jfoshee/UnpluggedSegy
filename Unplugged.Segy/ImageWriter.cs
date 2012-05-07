@@ -130,6 +130,8 @@ namespace Unplugged.Segy
         {
             var traceList = traces.ToList();
             int width = traceList.Count;
+			if (width == 0)
+	            return new RawBitmap { Bytes = new byte[]{}, Width = 0, Height = 0 };
             int height = traceList.First().Values.Count;
             int components = 4;
             var length = components * width * height;

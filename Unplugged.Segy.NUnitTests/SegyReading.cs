@@ -26,6 +26,12 @@ namespace Unplugged.Segy.MonoTouch.Tests
 			Assert.That(bytes.Length == 4 * segy.Traces.Count * segy.Traces[0].Values.Count);
 		}
 		
+		[Test]
+		public void ShouldReturnEmptyArrayForNoTraces()
+		{
+			var bytes = new ImageWriter().GetRaw32bppRgba(new ITrace[]{});
+		}
+		
 		class TestProgressReporter : IReadingProgress
 		{
 			public void ReportProgress (int progressPercentage)
