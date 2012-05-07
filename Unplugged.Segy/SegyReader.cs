@@ -63,6 +63,8 @@ namespace Unplugged.Segy
 						// TODO: Check if stream.Length breaks when streaming from web
 						int percentage = (int)(100 * stream.Position / stream.Length);
 						progress.ReportProgress(percentage);	
+						if (progress.CancellationPending)
+							break;
 					}
                     var trace = ReadTrace(reader, fileHeader.SampleFormat, fileHeader.IsLittleEndian);
                     if (trace == null)

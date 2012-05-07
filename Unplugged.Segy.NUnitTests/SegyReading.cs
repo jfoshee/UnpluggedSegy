@@ -34,7 +34,6 @@ namespace Unplugged.Segy.MonoTouch.Tests
 			}
 
 			public bool CancellationPending { get; set; }
-			
 			public List<int> ProgressReported { get; private set; } 
 			
 			public TestProgressReporter ()
@@ -56,6 +55,26 @@ namespace Unplugged.Segy.MonoTouch.Tests
 			var p = testProgressReporter.ProgressReported;
 			for (int i = 0; i < 101; i++)
 				Assert.That(p.Contains(i), i.ToString());
+		}
+		
+		class CancelsAtThirty : IReadingProgress
+		{
+			public void ReportProgress (int progressPercentage)
+			{
+				if (progressPercentage == 30)
+					CancellationPending = true;
+				if (progressPercentage > 30)
+					Assert.Fail("Should not proceed past 30%");
+			}
+			public bool CancellationPending { get; set; }
+		}
+		
+		[Test]
+		public void ShouldStopReadingWhenCancellationPending()
+		{
+			var subject = new SegyReader();
+			var segy = subject.Read(@"./Examples/lineE.sgy", new CancelsAtThirty());
+			Assert.That(segy.Traces.Count == (int)(.3 * 111), segy.Traces.Count.ToString());
 		}
 		
 		[Test]
