@@ -28,19 +28,19 @@ namespace Unplugged.Segy
         /// <summary>
         /// Given a file path, reads entire SEGY file into memory
         /// </summary>
-        public virtual ISegyFile Read(string path)
+        public virtual ISegyFile Read(string path, IReadingProgress progress = null)
         {
             using (var stream = File.OpenRead(path))
-                return Read(stream);
+                return Read(stream, progress);
         }
 
         /// <summary>
         /// Given stream, reads entire SEGY file into memory.
         /// Assumes the stream is at the start of the file.
         /// </summary>
-        public virtual ISegyFile Read(Stream stream)
+        public virtual ISegyFile Read(Stream stream, IReadingProgress progress = null)
         {
-            return Read(stream, int.MaxValue);
+            return Read(stream, int.MaxValue, progress);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Unplugged.Segy
         /// in that case all the traces in the file are read.
         /// Assumes the stream is at the start of the file.
         /// </summary>
-        public virtual ISegyFile Read(Stream stream, int traceCount)
+        public virtual ISegyFile Read(Stream stream, int traceCount, IReadingProgress progress = null)
         {
             using (var reader = new BinaryReader(stream))
             {
@@ -58,6 +58,12 @@ namespace Unplugged.Segy
                 var traces = new List<ITrace>();
                 for (int i = 0; i < traceCount; i++)
                 {
+					if (progress != null)
+					{
+						// TODO: Check if stream.Length breaks when streaming from web
+						int percentage = (int)(100 * stream.Position / stream.Length);
+						progress.ReportProgress(percentage);	
+					}
                     var trace = ReadTrace(reader, fileHeader.SampleFormat, fileHeader.IsLittleEndian);
                     if (trace == null)
                         break;

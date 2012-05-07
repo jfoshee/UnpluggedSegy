@@ -83,5 +83,8 @@
     <Compile Include="..\Unplugged.Segy\ImageWriter.cs">
       <Link>Unplugged.Segy\ImageWriter.cs</Link>
     </Compile>
+    <Compile Include="..\Unplugged.Segy\IReadingProgress.cs">
+      <Link>Unplugged.Segy\IReadingProgress.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>
