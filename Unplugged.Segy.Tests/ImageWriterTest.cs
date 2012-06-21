@@ -18,7 +18,7 @@ namespace Unplugged.Segy.Tests
             bool setNullValuesToTransparent = Subject.SetNullValuesToTransparent;
 
             // Assert
-            Assert.AreEqual(true, setNullValuesToTransparent);
+            Assert.AreEqual(false, setNullValuesToTransparent);
         }
 
         [TestMethod]
@@ -102,6 +102,7 @@ namespace Unplugged.Segy.Tests
             var trace = new MockTrace { Values = traceValues };
             var segy = new MockSegyFile { Traces = new ITrace[] { trace } };
             var path = TestPath() + ".png";
+            Subject.SetNullValuesToTransparent = true;
 
             // Act
             Subject.Write(segy, path);
@@ -236,6 +237,25 @@ namespace Unplugged.Segy.Tests
                 Marshal.Copy(bmpData.Scan0, expected, 0, length);
                 CollectionAssert.AreEqual(expected, bytes);
             }
+        }
+
+        [TestMethod]
+        public void ShouldGetSingleComponentByteArray()
+        {
+            // Arrange
+            IEnumerable<ITrace> traces = MockTraces2x3();
+
+            // Act
+            byte[] bytes = Subject.GetRaw8bpp(traces);
+
+            // Assert
+            var expected = new byte[] 
+            { 
+                127, 63,    // 20, 15
+                0, 255,     // 10, 30
+                191, 191    // 25, 25
+            };
+            CollectionAssert.AreEqual(expected, bytes);
         }
 
         private static IEnumerable<ITrace> MockTraces2x3()

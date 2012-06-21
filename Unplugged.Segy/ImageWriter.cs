@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -22,11 +23,11 @@ namespace Unplugged.Segy
 
         public ImageWriter()
         {
-            SetNullValuesToTransparent = true;
+            SetNullValuesToTransparent = false;
         }
-		
+
 #if !MONO_TOUCH
-		
+
         /// <summary>
         /// Writes one or more bitmap for the given SEGY file. 
         /// If the SEGY has multiple inline numbers, it is assumed to be 3D, and one bitmap is written for each inline.
@@ -52,7 +53,7 @@ namespace Unplugged.Segy
                 WriteBitmapPerInline(segyFile, path, inlineNumbers, range);
             }
         }
-		
+
         /// <summary>
         /// Writes a bitmap image with the given traces to the given destination path.
         /// </summary>
@@ -85,32 +86,40 @@ namespace Unplugged.Segy
             return GetBitmap(traces, range);
         }
 #endif
-		
+
         /// <summary>
         /// Returns a bitmap as a one-dimensional byte array. Pixels are layed out as R, G, B, A with one byte per channel.
         /// </summary>
         public virtual byte[] GetRaw32bppRgba(IEnumerable<ITrace> traces)
         {
-            var range = FindRange(traces);
-            return GetRawBytesAndSize(traces, range).Bytes;
+            return GetRaw(traces, 4);
+        }
+
+        /// <summary>
+        /// Returns a bitmap as a one-dimensional byte array. The pixel format is 1 unsigned byte per pixel. 
+        /// Thus, the seismic data is quantized to the range 0...255.
+        /// </summary>
+        public virtual byte[] GetRaw8bpp(IEnumerable<ITrace> traces)
+        {
+            return GetRaw(traces, 1);
         }
 
         #region Behind the Scenes
-		
-		private class ValueRange
-		{
-			public float Min { get; set; }
-			public float Max { get; set; }
-			public float Delta { get; set; }
-		}
-		
-		private class RawBitmap
-		{
-			public int Width { get; set; }
-			public int Height { get; set; }
-			public byte[] Bytes { get; set; }
-		}
-		
+
+        private class ValueRange
+        {
+            public float Min { get; set; }
+            public float Max { get; set; }
+            public float Delta { get; set; }
+        }
+
+        private class RawBitmap
+        {
+            public int Width { get; set; }
+            public int Height { get; set; }
+            public byte[] Bytes { get; set; }
+        }
+
         // O(N)
         private static ValueRange FindRange(IEnumerable<ITrace> traces)
         {
@@ -125,28 +134,33 @@ namespace Unplugged.Segy
             return new ValueRange { Min = min, Max = max, Delta = max - min };
         }
 
+        private byte[] GetRaw(IEnumerable<ITrace> traces, int components)
+        {
+            var range = FindRange(traces);
+            return GetRawBytesAndSize(traces, range, components).Bytes;
+        }
+
         // O(N)
-        private RawBitmap GetRawBytesAndSize(IEnumerable<ITrace> traces, ValueRange range)
+        private RawBitmap GetRawBytesAndSize(IEnumerable<ITrace> traces, ValueRange range, int components)
         {
             var traceList = traces.ToList();
             int width = traceList.Count;
-			if (width == 0)
-	            return new RawBitmap { Bytes = new byte[]{}, Width = 0, Height = 0 };
+            if (width == 0)
+                return new RawBitmap { Bytes = new byte[] { }, Width = 0, Height = 0 };
             int height = traceList.First().Values.Count;
-            int components = 4;
             var length = components * width * height;
             var bytes = new byte[length];
             for (int i = 0; i < width; i++)
                 for (int j = 0; j < height; j++)
                 {
                     var index = components * (j * width + i);
-                    SetColor(bytes, index, range.Min, range.Delta, traceList[i].Values[j]);
+                    SetColor(bytes, index, range.Min, range.Delta, traceList[i].Values[j], components);
                 }
             return new RawBitmap { Bytes = bytes, Width = width, Height = height };
         }
-		
+
 #if !MONO_TOUCH
-		
+
         private void WriteBitmapPerInline(ISegyFile segyFile, string path, IEnumerable<int> inlineNumbers, ValueRange range)
         {
             foreach (var inline in inlineNumbers)
@@ -167,7 +181,7 @@ namespace Unplugged.Segy
 
         private Bitmap GetBitmap(IEnumerable<ITrace> traces, dynamic range)
         {
-            dynamic raw = GetRawBytesAndSize(traces, range);
+            dynamic raw = GetRawBytesAndSize(traces, range, 4);
             return GetBitmap(raw.Bytes, raw.Width, raw.Height);
         }
 
@@ -179,19 +193,26 @@ namespace Unplugged.Segy
             bitmap.UnlockBits(bitmapData);
             return bitmap;
         }
-		
+
 #endif
-		
-        private void SetColor(byte[] bytes, int offset, float valueMin, float valueRange, float value)
+
+        private void SetColor(byte[] bytes, int offset, float valueMin, float valueRange, float value, int components)
         {
             var alpha = byte.MaxValue;
             if (SetNullValuesToTransparent && value == 0.0f) // Exactly zero is assumed to be a null sample
                 alpha = byte.MinValue;
             var byteValue = (byte)(byte.MaxValue * (value - valueMin) / valueRange);
-            bytes[offset + 0] = byteValue;
-            bytes[offset + 1] = byteValue;
-            bytes[offset + 2] = byteValue;
-            bytes[offset + 3] = alpha;
+            if (components == 1)
+                bytes[offset + 0] = byteValue;
+            else if (components == 4)
+            {
+                bytes[offset + 0] = byteValue;
+                bytes[offset + 1] = byteValue;
+                bytes[offset + 2] = byteValue;
+                bytes[offset + 3] = alpha;
+            }
+            else
+                throw new ArgumentException("components");
         }
 
         private static IEnumerable<int> GetInlineNumbers(ISegyFile segyFile)
