@@ -90,7 +90,7 @@ namespace Unplugged.Segy
         /// <summary>
         /// Returns a bitmap as a one-dimensional byte array. Pixels are layed out as R, G, B, A with one byte per channel.
         /// </summary>
-        public virtual byte[] GetRaw32bppRgba(IEnumerable<ITrace> traces)
+        public virtual byte[] GetRaw32BppRgba(IEnumerable<ITrace> traces)
         {
             return GetRaw(traces, 4);
         }
@@ -99,7 +99,7 @@ namespace Unplugged.Segy
         /// Returns a bitmap as a one-dimensional byte array. The pixel format is 1 unsigned byte per pixel. 
         /// Thus, the seismic data is quantized to the range 0...255.
         /// </summary>
-        public virtual byte[] GetRaw8bpp(IEnumerable<ITrace> traces)
+        public virtual byte[] GetRaw8Bpp(IEnumerable<ITrace> traces)
         {
             return GetRaw(traces, 1);
         }
@@ -212,7 +212,7 @@ namespace Unplugged.Segy
                 bytes[offset + 3] = alpha;
             }
             else
-                throw new ArgumentException("components");
+                throw new ArgumentException("Unsupported option", "components");
         }
 
         private static IEnumerable<int> GetInlineNumbers(ISegyFile segyFile)

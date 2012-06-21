@@ -223,7 +223,7 @@ namespace Unplugged.Segy.Tests
             IEnumerable<ITrace> traces = MockTraces2x3();
 
             // Act
-            byte[] bytes = Subject.GetRaw32bppRgba(traces);
+            byte[] bytes = Subject.GetRaw32BppRgba(traces);
 
             // Assert
             Assert.AreEqual(2 * 3 * 4, bytes.Length);
@@ -246,7 +246,7 @@ namespace Unplugged.Segy.Tests
             IEnumerable<ITrace> traces = MockTraces2x3();
 
             // Act
-            byte[] bytes = Subject.GetRaw8bpp(traces);
+            byte[] bytes = Subject.GetRaw8Bpp(traces);
 
             // Assert
             var expected = new byte[] 

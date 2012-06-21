@@ -22,14 +22,14 @@ namespace Unplugged.Segy.MonoTouch.Tests
 			var reader = new SegyReader();
 			var segy = reader.Read(@"./Examples/lineE.sgy");
 			var imageWriter = new ImageWriter();
-			var bytes = imageWriter.GetRaw32bppRgba(segy.Traces);
+			var bytes = imageWriter.GetRaw32BppRgba(segy.Traces);
 			Assert.That(bytes.Length == 4 * segy.Traces.Count * segy.Traces[0].Values.Count);
 		}
 		
 		[Test]
 		public void ShouldReturnEmptyArrayForNoTraces()
 		{
-			var bytes = new ImageWriter().GetRaw32bppRgba(new ITrace[]{});
+			var bytes = new ImageWriter().GetRaw32BppRgba(new ITrace[]{});
             Assert.That(bytes.Length == 0);
 		}
 		
