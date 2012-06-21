@@ -389,6 +389,12 @@ namespace Unplugged.Segy.Tests
         }
 
         [TestMethod]
+        public void ShouldReadTwosComplementInteger1()
+        {
+            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger1, new float[] { -126, -128, 88 }, new byte[] { 130, 128, 88}, true);
+        }
+
+        [TestMethod]
         public void ShouldHandleEndOfStreamBeforeEndOfTrace()
         {
             // Arrange

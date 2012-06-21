@@ -202,6 +202,9 @@ namespace Unplugged.Segy
                         case FormatCode.IeeeFloatingPoint4:
                             trace[i] = reader.ReadSingle();
                             break;
+                        case FormatCode.TwosComplementInteger1:
+                            trace[i] = ReadSignedByte(reader);
+                            break;
                         case FormatCode.TwosComplementInteger2:
                             trace[i] = isLittleEndian ?
                                 reader.ReadInt16() :
@@ -256,6 +259,12 @@ namespace Unplugged.Segy
             return isLittleEndian ?
                 BitConverter.ToInt32(bytes, index) :
                 IbmConverter.ToInt32(bytes, index);
+        }
+
+        private static float ReadSignedByte(BinaryReader reader)
+        {
+            byte b = reader.ReadByte();
+            return b < 128 ? b : b - 256;
         }
 
         #endregion
