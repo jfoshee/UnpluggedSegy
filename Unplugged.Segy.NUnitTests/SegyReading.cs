@@ -30,6 +30,7 @@ namespace Unplugged.Segy.MonoTouch.Tests
 		public void ShouldReturnEmptyArrayForNoTraces()
 		{
 			var bytes = new ImageWriter().GetRaw32bppRgba(new ITrace[]{});
+            Assert.That(bytes.Length == 0);
 		}
 		
 		class TestProgressReporter : IReadingProgress

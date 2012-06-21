@@ -86,10 +86,15 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Examples\" />
+    <Folder Include="Images\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Unplugged.Segy.Tests\Examples\lineE.sgy">
       <Link>Examples\lineE.sgy</Link>
     </Content>
+    <Content Include="Images\icon57.png" />
+    <Content Include="Images\icon72.png" />
+    <Content Include="Images\icon114.png" />
+    <Content Include="Images\icon144.png" />
   </ItemGroup>
 </Project>

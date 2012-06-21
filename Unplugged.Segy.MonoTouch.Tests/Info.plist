@@ -4,6 +4,13 @@
 <dict>
 	<key>CFBundleDisplayName</key>
 	<string>SEGY Tests</string>
+	<key>CFBundleIconFiles</key>
+	<array>
+		<string>Images/icon57.png</string>
+		<string>Images/icon114.png</string>
+		<string>Images/icon72.png</string>
+		<string>Images/icon144.png</string>
+	</array>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>
@@ -12,6 +19,7 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
