@@ -29,6 +29,21 @@ Console.WriteLine(max);
 Console.WriteLine(mean);
 ```
 
+### Supported Sample Formats
+- IBM Floating Point 4 (Big Endian)
+- IEEE Floating Point 4 (Little Endian)
+- Two's Complement Integer 4 (Big and Little Endian)
+- Two's Complement Integer 2 (Big and Little Endian)
+- Two's Complement Integer 1
+
+### Current Known Limitations
+- Assumed to be built on Little Endian architecture
+- Sample Format not supported: Fixed Point With Gain 4
+- Extended Text Headers are not supported
+- Writing SEGY files is not supported
+
+If you have example files of unsupported formats or feature requests, they would be appreciated!  Please, send to <dev@segy.net>
+
 ### Acknowledgements
 
 Example data is courtesy of the [Rocky Mountian Oilfield Testing Center](http://www.rmotc.doe.gov/) and the U.S. Department of Energy
