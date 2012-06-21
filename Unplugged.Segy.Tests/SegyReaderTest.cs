@@ -359,11 +359,33 @@ namespace Unplugged.Segy.Tests
         }
 
         [TestMethod]
-        public void ShouldReadTwosComplementInteger2()
+        public void ShouldReadTwosComplementInteger2BigEndian()
         {
             var expected = new float[] { -777, 888 };
             var bytes = BitConverter.GetBytes((Int16)(-777)).Reverse().Concat(BitConverter.GetBytes((Int16)888).Reverse()).ToArray();
             VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger2, expected, bytes, false);
+        }
+
+        [TestMethod]
+        public void ShouldReadTwosComplementInteger2LittleEndian()
+        {
+            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger2, new float[] { 513 }, new byte[] { 1, 2 }, true);
+        }
+
+        [TestMethod]
+        public void ShouldReadTwosComplementInteger4BigEndian()
+        {
+            var expected = new float[] { -777, 888 };
+            var bytes = BitConverter.GetBytes((Int32)(-777)).Reverse().Concat(BitConverter.GetBytes((Int32)888).Reverse()).ToArray();
+            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger4, expected, bytes, false);
+        }
+
+        [TestMethod]
+        public void ShouldReadTwosComplementInteger4LittleEndian()
+        {
+            var expected = new float[] { -777, 888 };
+            var bytes = BitConverter.GetBytes((Int32)(-777)).Concat(BitConverter.GetBytes((Int32)888)).ToArray();
+            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger4, expected, bytes, true);
         }
 
         [TestMethod]
@@ -553,12 +575,6 @@ namespace Unplugged.Segy.Tests
             Assert.AreEqual(33554433, traceHeader.InlineNumber);
             Assert.AreEqual(33554434, traceHeader.CrosslineNumber);
             Assert.AreEqual(33554434, traceHeader.TraceNumber);
-        }
-
-        [TestMethod]
-        public void ShouldReadLittleEndianInt16()
-        {
-            VerifyReadsSamplesOfGivenFormat(FormatCode.TwosComplementInteger2, new float[] { 513 }, new byte[] { 1, 2 }, true);
         }
 
         // TODO: LittleEndianIntegrationTest

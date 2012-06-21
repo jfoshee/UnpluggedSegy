@@ -58,14 +58,14 @@ namespace Unplugged.Segy
                 var traces = new List<ITrace>();
                 for (int i = 0; i < traceCount; i++)
                 {
-					if (progress != null)
-					{
-						// TODO: Check if stream.Length breaks when streaming from web
-						int percentage = (int)(100 * stream.Position / stream.Length);
-						progress.ReportProgress(percentage);	
-						if (progress.CancellationPending)
-							break;
-					}
+                    if (progress != null)
+                    {
+                        // TODO: Check if stream.Length breaks when streaming from web
+                        int percentage = (int)(100 * stream.Position / stream.Length);
+                        progress.ReportProgress(percentage);
+                        if (progress.CancellationPending)
+                            break;
+                    }
                     var trace = ReadTrace(reader, fileHeader.SampleFormat, fileHeader.IsLittleEndian);
                     if (trace == null)
                         break;
@@ -206,6 +206,11 @@ namespace Unplugged.Segy
                             trace[i] = isLittleEndian ?
                                 reader.ReadInt16() :
                                 reader.ReadInt16BigEndian();
+                            break;
+                        case FormatCode.TwosComplementInteger4:
+                            trace[i] = isLittleEndian ?
+                                reader.ReadInt32() :
+                                reader.ReadInt32BigEndian();
                             break;
                         default:
                             throw new NotSupportedException(
