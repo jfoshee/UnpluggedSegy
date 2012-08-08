@@ -346,7 +346,7 @@ namespace Unplugged.Segy.Tests
         {
             var expected = new float[] { 10, 20, 30 };
             var bytes = BitConverter.GetBytes(10f).Concat(BitConverter.GetBytes(20f)).Concat(BitConverter.GetBytes(30f)).ToArray();
-            VerifyReadsSamplesOfGivenFormat(FormatCode.IeeeFloatingPoint4, expected, bytes, false);
+            VerifyReadsSamplesOfGivenFormat(FormatCode.IeeeFloatingPoint4, expected, bytes, true);
         }
 
         [TestMethod]
@@ -429,7 +429,7 @@ namespace Unplugged.Segy.Tests
             var expected = new float[] { 11, 111 };
             var bytes = new byte[240]; // trace header
             SetBigIndianValue((Int16)expected.Length, bytes, 115);
-            bytes = bytes.Concat(BitConverter.GetBytes(expected[0])).Concat(BitConverter.GetBytes(expected[1])).ToArray();
+            bytes = bytes.Concat(BitConverter.GetBytes(expected[0]).Reverse()).Concat(BitConverter.GetBytes(expected[1]).Reverse()).ToArray();
             ITrace trace = null;
 
             // Act
