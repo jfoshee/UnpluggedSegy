@@ -13,7 +13,7 @@ namespace Unplugged.Segy.MonoTouch.Tests
 			var subject = new SegyReader();
 			var segy = subject.Read(@"./Examples/lineE.sgy");
 			Console.WriteLine(segy.Header.Text);
-			Assert.That(segy.Traces.Count == 111);
+			Assert.That(segy.Traces.Count, Is.EqualTo(111));
 		}
 				
 		[Test]
@@ -23,14 +23,15 @@ namespace Unplugged.Segy.MonoTouch.Tests
 			var segy = reader.Read(@"./Examples/lineE.sgy");
 			var imageWriter = new ImageWriter();
 			var bytes = imageWriter.GetRaw32BppRgba(segy.Traces);
-			Assert.That(bytes.Length == 4 * segy.Traces.Count * segy.Traces[0].Values.Count);
+            var expected = 4 * segy.Traces.Count * segy.Traces[0].Values.Count;
+			Assert.That(bytes.Length, Is.EqualTo(expected));
 		}
 		
 		[Test]
 		public void ShouldReturnEmptyArrayForNoTraces()
 		{
 			var bytes = new ImageWriter().GetRaw32BppRgba(new ITrace[]{});
-            Assert.That(bytes.Length == 0);
+            Assert.That(bytes.Length, Is.EqualTo(0));
 		}
 		
 		class TestProgressReporter : IReadingProgress
@@ -81,13 +82,8 @@ namespace Unplugged.Segy.MonoTouch.Tests
 		{
 			var subject = new SegyReader();
 			var segy = subject.Read(@"./Examples/lineE.sgy", new CancelsAtThirty());
-			Assert.That(segy.Traces.Count == (int)(.3 * 111), segy.Traces.Count.ToString());
-		}
-		
-		[Test]
-		public void Canary()
-		{
-			Assert.That(true);
+            var expected = (int)(.3 * 111);
+			Assert.That(segy.Traces.Count, Is.EqualTo(expected));
 		}
 	}
 }
