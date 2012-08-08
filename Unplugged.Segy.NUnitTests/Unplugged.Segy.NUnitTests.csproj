@@ -51,5 +51,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <None Include="..\Unplugged.Segy.Tests\Examples\bigEndianIEEEFloat.sgy">
+      <Link>Examples\bigEndianIEEEFloat.sgy</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

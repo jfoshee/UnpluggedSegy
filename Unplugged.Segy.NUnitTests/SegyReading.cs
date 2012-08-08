@@ -15,7 +15,20 @@ namespace Unplugged.Segy.MonoTouch.Tests
 			Console.WriteLine(segy.Header.Text);
 			Assert.That(segy.Traces.Count, Is.EqualTo(111));
 		}
-				
+
+        [Test]
+        public void ShouldReadBigEndianIEEEFloatingPoint()
+        {
+            var subject = new SegyReader();
+            var segy = subject.Read(@"./Examples/bigEndianIEEEFloat.sgy");
+            Console.WriteLine(segy.Header.Text);
+            Assert.That(segy.Traces.Count, Is.EqualTo(120));
+            Assert.That(segy.Traces[0].Values[0], Is.EqualTo(0));
+            Assert.That(segy.Traces[60].Values[159], Is.EqualTo(0.896f).Within(0.001f));
+            Assert.That(segy.Traces[60].Values[160], Is.EqualTo(1.000f).Within(0.001f));
+            Assert.That(segy.Traces[60].Values[161], Is.EqualTo(0.896f).Within(0.001f));
+        }
+		
 		[Test]
 		public void ShouldGetImageBytes()
 		{

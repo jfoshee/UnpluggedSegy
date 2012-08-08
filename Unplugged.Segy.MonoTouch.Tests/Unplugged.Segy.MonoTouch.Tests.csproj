@@ -96,5 +96,8 @@
     <Content Include="Images\icon72.png" />
     <Content Include="Images\icon114.png" />
     <Content Include="Images\icon144.png" />
+    <Content Include="..\Unplugged.Segy.Tests\Examples\bigEndianIEEEFloat.sgy">
+      <Link>Examples\bigEndianIEEEFloat.sgy</Link>
+    </Content>
   </ItemGroup>
 </Project>
