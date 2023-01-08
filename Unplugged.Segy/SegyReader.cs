@@ -200,22 +200,16 @@ namespace Unplugged.Segy
                             trace[i] = reader.ReadSingleIbm();
                             break;
                        case FormatCode.IeeeFloatingPoint4:
-                            trace[i] = isLittleEndian ?
-                                reader.ReadSingle() :
-                                ReadReversedSingle(reader);
+                            trace[i] = ReadSingle(reader, isLittleEndian);
                             break;
                         case FormatCode.TwosComplementInteger1:
                             trace[i] = ReadSignedByte(reader);
                             break;
                         case FormatCode.TwosComplementInteger2:
-                            trace[i] = isLittleEndian ?
-                                reader.ReadInt16() :
-                                reader.ReadInt16BigEndian();
+                            trace[i] = ReadInt16(reader, isLittleEndian);
                             break;
                         case FormatCode.TwosComplementInteger4:
-                            trace[i] = isLittleEndian ?
-                                reader.ReadInt32() :
-                                reader.ReadInt32BigEndian();
+                            trace[i] = ReadInt32(reader, isLittleEndian);
                             break;
                         default:
                             throw new NotSupportedException(
@@ -268,6 +262,15 @@ namespace Unplugged.Segy
             byte b = reader.ReadByte();
             return b < 128 ? b : b - 256;
         }
+
+        private static float ReadSingle(BinaryReader reader, bool isLittleEndian)
+            => isLittleEndian ? reader.ReadSingle() : ReadReversedSingle(reader);
+
+        private static Int32 ReadInt32(BinaryReader reader, bool isLittleEndian)
+            => isLittleEndian ? reader.ReadInt32() : reader.ReadInt32BigEndian();
+
+        private static Int16 ReadInt16(BinaryReader reader, bool isLittleEndian)
+            => isLittleEndian ? reader.ReadInt16() : reader.ReadInt16BigEndian();
 
         private static float ReadReversedSingle(BinaryReader reader)
         {
