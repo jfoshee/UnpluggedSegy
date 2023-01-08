@@ -271,7 +271,14 @@ namespace Unplugged.Segy
 
         private static float ReadReversedSingle(BinaryReader reader)
         {
-            var b = reader.ReadBytes(4).Reverse().ToArray();
+            var b = reader.ReadBytes(4);
+            byte tmp;
+            tmp = b[0];
+            b[0] = b[3];
+            b[3] = tmp;
+            tmp = b[1];
+            b[1] = b[2];
+            b[2] = tmp;
             return BitConverter.ToSingle(b, 0);
         }
 
