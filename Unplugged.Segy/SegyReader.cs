@@ -168,6 +168,21 @@ namespace Unplugged.Segy
                 traceHeader.InlineNumber = ToInt32(headerBytes, InlineNumberLocation - 1, isLittleEndian);
             if (headerBytes.Length >= _sampleCountIndex + 2)
                 traceHeader.SampleCount = ToInt16(headerBytes, _sampleCountIndex, isLittleEndian);
+
+            // X,Y
+            int ifactor = ToInt16(headerBytes, 70, isLittleEndian);
+            int iy = ToInt32(headerBytes, 72, isLittleEndian);
+            int ix = ToInt32(headerBytes, 76, isLittleEndian);
+            if (ifactor>=0)
+            {
+                traceHeader.X = ix * ifactor;
+                traceHeader.Y = iy * ifactor;
+            }
+            else
+            {
+                traceHeader.X = ((double)ix) / ifactor;
+                traceHeader.Y = ((double)iy) / ifactor;
+            }
             return traceHeader;
         }
 

@@ -7,5 +7,7 @@ namespace Unplugged.Segy
         public int TraceNumber { get; set; }
         public int InlineNumber { get; set; }
         public int CrosslineNumber { get; set; }
+        public double X { get; set;  }
+        public double Y { get; set;  }
     }
 }

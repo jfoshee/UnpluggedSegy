@@ -8,7 +8,8 @@ namespace Unplugged.Segy
         int InlineNumber { get; }
         int CrosslineNumber { get; }
         //int SampleIntervalInMicroseconds { get; }
-        //int X { get; }
-        //int Y { get; }
+
+        double X { get; }
+        double Y { get; }
     }
 }
