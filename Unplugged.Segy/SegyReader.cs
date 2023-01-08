@@ -171,9 +171,10 @@ namespace Unplugged.Segy
                 traceHeader.SampleCount = ToInt16(headerBytes, _sampleCountIndex, isLittleEndian);
 
             // X,Y
+            // TODO: This is valid only when the coordinate units in bytes 88,89 have been set to 1 (length in meters or feet).
             int ifactor = ToInt16(headerBytes, 70, isLittleEndian);
-            int iy = ToInt32(headerBytes, 72, isLittleEndian);
-            int ix = ToInt32(headerBytes, 76, isLittleEndian);
+            int ix = ToInt32(headerBytes, 72, isLittleEndian);
+            int iy = ToInt32(headerBytes, 76, isLittleEndian);
             if (ifactor>=0)
             {
                 traceHeader.X = ix * ifactor;
@@ -181,8 +182,8 @@ namespace Unplugged.Segy
             }
             else
             {
-                traceHeader.X = ((double)ix) / ifactor;
-                traceHeader.Y = ((double)iy) / ifactor;
+                traceHeader.X = ((double)ix) / (-ifactor);
+                traceHeader.Y = ((double)iy) / (-ifactor);
             }
             return traceHeader;
         }
