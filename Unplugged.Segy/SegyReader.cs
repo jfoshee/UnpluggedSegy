@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Unplugged.IbmBits;
 
@@ -207,29 +208,48 @@ namespace Unplugged.Segy
             var trace = new float[sampleCount];
             try
             {
-                for (int i = 0; i < sampleCount; i++)
+                // Reading into single big buffer first and converting later is about 2x faster than reading every value individually using BinaryReader.
+                byte[] bytes;
+                switch (sampleFormat)
                 {
-                    switch (sampleFormat)
-                    {
-                        case FormatCode.IbmFloatingPoint4:
+                    case FormatCode.IbmFloatingPoint4:
+                        for (int i = 0; i < sampleCount; i++)
+                        {
                             trace[i] = reader.ReadSingleIbm();
-                            break;
-                       case FormatCode.IeeeFloatingPoint4:
-                            trace[i] = ReadSingle(reader, isLittleEndian);
-                            break;
-                        case FormatCode.TwosComplementInteger1:
-                            trace[i] = ReadSignedByte(reader);
-                            break;
-                        case FormatCode.TwosComplementInteger2:
-                            trace[i] = ReadInt16(reader, isLittleEndian);
-                            break;
-                        case FormatCode.TwosComplementInteger4:
-                            trace[i] = ReadInt32(reader, isLittleEndian);
-                            break;
-                        default:
-                            throw new NotSupportedException(
-                                String.Format("Unsupported sample format: {0}. Send an email to dev@segy.net to request support for this format.", sampleFormat));
-                    }
+                        }
+                        break;
+                    case FormatCode.IeeeFloatingPoint4:
+                        bytes = ReadIntoBuffer(reader, sampleCount * 4);
+                        for (int i = 0; i < sampleCount; i++)
+                        {
+                            trace[i] = ToSingle(bytes, i*4, isLittleEndian);
+                        }
+                        break;
+                    case FormatCode.TwosComplementInteger1:
+                        bytes = ReadIntoBuffer(reader, sampleCount);
+                        for (int i = 0; i < sampleCount; i++)
+                        {
+                            var b = bytes[i];
+                            trace[i] = b < 128 ? b : b - 256;
+                        }
+                        break;
+                    case FormatCode.TwosComplementInteger2:
+                        bytes = ReadIntoBuffer(reader, sampleCount * 2);
+                        for (int i = 0; i < sampleCount; i++)
+                        {
+                            trace[i] = ToInt16(bytes, i*2, isLittleEndian);
+                        }
+                        break;
+                    case FormatCode.TwosComplementInteger4:
+                        bytes = ReadIntoBuffer(reader, sampleCount * 4);
+                        for (int i = 0; i < sampleCount; i++)
+                        {
+                            trace[i] = ToInt32(bytes, i*4, isLittleEndian);
+                        }
+                        break;
+                    default:
+                        throw new NotSupportedException(
+                            String.Format("Unsupported sample format: {0}. Send an email to dev@segy.net to request support for this format.", sampleFormat));
                 }
             }
             catch (EndOfStreamException) { /* Encountered end of stream before end of trace. Leave remaining trace samples as zero */ }
@@ -239,11 +259,17 @@ namespace Unplugged.Segy
         #endregion
 
         #region Behind the Scenes
-
+        [StructLayout(LayoutKind.Explicit)]
+        private struct FloatConvert
+        {
+            [FieldOffset(0)] public Int32 I;
+            [FieldOffset(0)] public Single F;
+        }
         private const int _binaryHeaderSize = 400;
         private const int _traceHeaderSize = 240;
         private const int _sampleFormatIndex = 24;
         private const int _sampleCountIndex = 114;
+        private byte[] _ReadBuffer = null;
 
         private string InsertNewLines(string text)
         {
@@ -271,6 +297,9 @@ namespace Unplugged.Segy
                 BitConverter.ToInt32(bytes, index) :
                 IbmConverter.ToInt32(bytes, index);
         }
+
+        private static float ToSingle(byte[] bytes, int index, bool isLittleEndian)
+            => isLittleEndian ? BitConverter.ToSingle(bytes, index) : ToSingleReversed(bytes, index);
 
         private static float ReadSignedByte(BinaryReader reader)
         {
@@ -300,6 +329,28 @@ namespace Unplugged.Segy
             return BitConverter.ToSingle(b, 0);
         }
 
+        private static float ToSingleReversed(byte[] bytes, int index)
+        {
+            return new FloatConvert { I = IbmConverter.ToInt32(bytes, index) }.F;
+        }
+
+        byte[] ReadIntoBuffer(BinaryReader reader, int length)
+        {
+            if (_ReadBuffer == null || _ReadBuffer.Length < length)
+            {
+                _ReadBuffer = new byte[length];
+            }
+            int this_round;
+            for (int so_far=0; so_far<length; so_far += this_round)
+            {
+                this_round = reader.BaseStream.Read(_ReadBuffer, 0, length);
+                if (this_round <= 0)
+                {
+                    throw new EndOfStreamException("End of input file");
+                }
+            }
+            return _ReadBuffer;
+        }
         #endregion
     }
 }
