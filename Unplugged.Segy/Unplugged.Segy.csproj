@@ -56,10 +56,12 @@
     <Compile Include="ISegyOptions.cs" />
     <Compile Include="ITrace.cs" />
     <Compile Include="ITraceHeader.cs" />
+    <Compile Include="MeasurementSystem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SegyFile.cs" />
     <Compile Include="SegyOptions.cs" />
     <Compile Include="SegyReader.cs" />
+    <Compile Include="TimeBasis.cs" />
     <Compile Include="Trace.cs" />
     <Compile Include="TraceHeader.cs" />
     <Compile Include="IReadingProgress.cs" />

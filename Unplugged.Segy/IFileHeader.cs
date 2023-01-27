@@ -6,5 +6,6 @@ namespace Unplugged.Segy
         string Text { get; }
         FormatCode SampleFormat { get; }
         bool IsLittleEndian { get; }
+        MeasurementSystem MeasurementSystem { get; }
     }
 }

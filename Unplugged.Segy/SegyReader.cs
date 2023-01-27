@@ -139,7 +139,12 @@ namespace Unplugged.Segy
             var sampleFormat = isLittleEndian ?
                     (FormatCode)byte0 :
                     (FormatCode)byte1;
-            return new FileHeader { SampleFormat = sampleFormat, IsLittleEndian = isLittleEndian };
+            var measurement_system = (MeasurementSystem)ToInt16(binaryHeader, 3254 - 3200, isLittleEndian);
+            return new FileHeader {
+                SampleFormat = sampleFormat,
+                IsLittleEndian = isLittleEndian,
+                MeasurementSystem = measurement_system
+            };
         }
 
         /// <summary>
@@ -150,6 +155,13 @@ namespace Unplugged.Segy
         public virtual ITraceHeader ReadTraceHeader(BinaryReader reader)
         {
             return ReadTraceHeader(reader, false);
+        }
+
+        static DateTime DateTimeOfYearAndDay(int year, int dayOfYear, int hour, int minute, int second, DateTimeKind kind, int extraSeconds)
+        {
+            var t_jan_1 = new DateTime(year, 1, 1, hour, minute, second, kind);
+            var r = t_jan_1.AddSeconds((dayOfYear - 1) * (24 * 3600));
+            return r;
         }
 
         /// <summary>
@@ -164,17 +176,17 @@ namespace Unplugged.Segy
                 return null;
             if (headerBytes.Length >= CrosslineNumberLocation + 3)
                 traceHeader.CrosslineNumber = traceHeader.TraceNumber =
-                    ToInt32(headerBytes, CrosslineNumberLocation - 1, isLittleEndian);
+                    Int32AtOffset(CrosslineNumberLocation - 1);
             if (headerBytes.Length >= InlineNumberLocation + 3)
-                traceHeader.InlineNumber = ToInt32(headerBytes, InlineNumberLocation - 1, isLittleEndian);
+                traceHeader.InlineNumber = Int32AtOffset(InlineNumberLocation - 1);
             if (headerBytes.Length >= _sampleCountIndex + 2)
-                traceHeader.SampleCount = ToInt16(headerBytes, _sampleCountIndex, isLittleEndian);
+                traceHeader.SampleCount = Int16AtOffset(_sampleCountIndex);
 
             // X,Y
             // TODO: This is valid only when the coordinate units in bytes 88,89 have been set to 1 (length in meters or feet).
-            int ifactor = ToInt16(headerBytes, 70, isLittleEndian);
-            int ix = ToInt32(headerBytes, 72, isLittleEndian);
-            int iy = ToInt32(headerBytes, 76, isLittleEndian);
+            int ifactor = Int16AtOffset(70);
+            int ix = Int32AtOffset(72);
+            int iy = Int32AtOffset(76);
             if (ifactor>=0)
             {
                 traceHeader.X = ix * ifactor;
@@ -185,7 +197,42 @@ namespace Unplugged.Segy
                 traceHeader.X = ((double)ix) / (-ifactor);
                 traceHeader.Y = ((double)iy) / (-ifactor);
             }
+
+            // Timestamp
+            var year = Int16AtOffset(156);
+            var day_of_year = Int16AtOffset(158); // starting from 1.
+            var hour = Int16AtOffset(160);
+            var minute = Int16AtOffset(162);
+            var second = Int16AtOffset(164);
+            var time_basis = (TimeBasis)Int16AtOffset(166);
+            switch (time_basis)
+            {
+                case TimeBasis.LOCAL:
+                    traceHeader.Timestamp = DateTimeOfYearAndDay(year, day_of_year, hour, minute, second, DateTimeKind.Local, 0);
+                    break;
+                case TimeBasis.GMT:
+                    traceHeader.Timestamp = DateTimeOfYearAndDay(year, day_of_year, hour, minute, second, DateTimeKind.Utc, 0);
+                    break;
+                case TimeBasis.OTHER:
+                    break;
+                case TimeBasis.UTC:
+                    traceHeader.Timestamp = DateTimeOfYearAndDay(year, day_of_year, hour, minute, second, DateTimeKind.Utc, 0);
+                    break;
+                case TimeBasis.GPS:
+                    traceHeader.Timestamp = DateTimeOfYearAndDay(year, day_of_year, hour, minute, second, DateTimeKind.Utc, -18); // as of 2022, the GPS time is 18 seconds ahead of UTC.
+                    break;
+            }
+
+            // Speed
+            // Course
+
             return traceHeader;
+
+            Int16 Int16AtOffset(int index)
+                => SegyReader.ToInt16(headerBytes, index, isLittleEndian);
+
+            Int32 Int32AtOffset(int index)
+                => SegyReader.ToInt32(headerBytes, index, isLittleEndian);
         }
 
         /// <summary>
@@ -285,14 +332,14 @@ namespace Unplugged.Segy
             return result.ToString();
         }
 
-        private static int ToInt16(byte[] bytes, int index, bool isLittleEndian)
+        private static Int16 ToInt16(byte[] bytes, int index, bool isLittleEndian)
         {
             return isLittleEndian ?
                 BitConverter.ToInt16(bytes, index) :
                 IbmConverter.ToInt16(bytes, index);
         }
 
-        private static int ToInt32(byte[] bytes, int index, bool isLittleEndian)
+        private static Int32 ToInt32(byte[] bytes, int index, bool isLittleEndian)
         {
             return isLittleEndian ?
                 BitConverter.ToInt32(bytes, index) :

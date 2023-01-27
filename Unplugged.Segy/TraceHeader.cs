@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace Unplugged.Segy
 {
     class TraceHeader : ITraceHeader
@@ -9,5 +10,6 @@ namespace Unplugged.Segy
         public int CrosslineNumber { get; set; }
         public double X { get; set;  }
         public double Y { get; set;  }
+        public DateTime Timestamp { get; set; }
     }
 }

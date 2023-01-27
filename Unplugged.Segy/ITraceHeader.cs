@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace Unplugged.Segy
 {
     public interface ITraceHeader
@@ -11,5 +12,10 @@ namespace Unplugged.Segy
 
         double X { get; }
         double Y { get; }
+
+        /// <summary>
+        /// Timestamp. This can be either in local time or UTC time.
+        /// </summary>
+        DateTime Timestamp { get; }
     }
 }
