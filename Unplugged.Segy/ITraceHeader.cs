@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace Unplugged.Segy
 {
     public interface ITraceHeader
@@ -8,7 +9,13 @@ namespace Unplugged.Segy
         int InlineNumber { get; }
         int CrosslineNumber { get; }
         //int SampleIntervalInMicroseconds { get; }
-        //int X { get; }
-        //int Y { get; }
+
+        double X { get; }
+        double Y { get; }
+
+        /// <summary>
+        /// Timestamp. This can be either in local time or UTC time.
+        /// </summary>
+        DateTime Timestamp { get; }
     }
 }
